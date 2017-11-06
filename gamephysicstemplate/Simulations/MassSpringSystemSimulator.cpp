@@ -15,7 +15,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 
 const char * MassSpringSystemSimulator::getTestCasesStr()
 {
-	return "Euler, Midpoint, Leapfrog";
+	return "Euler, Leapfrog, Midpoint";
 }
 
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
@@ -87,15 +87,18 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	m_iTestCase = testCase;
+	m_curTime = 0;
+	//reset position and velocity of point that moves
+	//TODO: own method
+	m_points[0].position = Vec3();
+	m_points[0].velocity = Vec3(-1, 0, 0);
 	switch (m_iTestCase)
 	{
 	case EULER:
 		cout << "Euler !\n";	
 		break;
 	case LEAPFROG:
-		cout << "Leapfrog\n";
-		//m_iNumSpheres = 100;
-		//m_fSphereSize = 0.05f;
+		cout << "Leapfrog\n";		
 		break;
 	case MIDPOINT:
 		cout << "Midpoint !\n";		
@@ -120,14 +123,12 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		for (int i = 0; i < m_inumPoints; i++) {
 			if (!m_points[i].isFixed)
 			{
-				//iterate velocity and position; acceleration doesn't change
-				
+				//iterate velocity and position; acceleration depends on position				
 				Vec3 acc = Vec3(-1.f,-1.f,-1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
 								
 				m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
-				m_points[i].velocity = m_points[i].velocity + timeStep * acc;
-					//(-(m_springs[i].initialLength * sqrt(m_fStiffness / m_fMass) * sin(sqrt(m_fStiffness / m_fMass) * (m_curTime))));
+				m_points[i].velocity = m_points[i].velocity + timeStep * acc;					
 
 				if (m_curTime < timeStep + timeStep/2 && m_curTime > timeStep - timeStep/2) {
 					cout << "\nposition of mass1 at time : " << m_curTime << " " << m_points[i].position;
@@ -144,7 +145,19 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		for (int i = 0; i < m_inumPoints; i++) {
 			if (!m_points[i].isFixed)
 			{
-				
+				//yTilde
+				Vec3 halfPos = m_points[i].position + timeStep / 2 * m_points[i].velocity;
+				//acc at yTilde
+				Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * halfPos;
+				//velocity at yTilde
+				m_points[i].velocity = m_points[i].velocity + timeStep * acc;
+				//new position
+				m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
+
+				if (m_curTime < timeStep + timeStep / 2 && m_curTime > timeStep - timeStep / 2) {
+					cout << "\nposition of mass1 at time : " << m_curTime << " " << m_points[i].position;
+					cout << "\nvelocity of mass1 at time : " << m_curTime << " " << m_points[i].velocity;
+				}
 			}
 		}
 		break;
