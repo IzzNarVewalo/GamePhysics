@@ -25,11 +25,15 @@ public:
 	
 	// UI Functions
 	const char * getTestCasesStr();
+	const char * getIntegCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
+	void eulerStep(float timeStep);
+	void midpointStep(float timeStep);
+	void leapfrogStep(float timeStep);
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
@@ -60,9 +64,8 @@ private:
 
 	std::vector<MassPoint> m_points;
 	std::vector<Spring> m_springs;
-	int m_inumPoints, m_inumSprings;
-	float m_curTime;
-
+	int m_inumPoints, m_inumSprings, m_idemoFinish;
+	
 	// UI Attributes
 	Vec3 m_externalForce;
 	Point2D m_mouse;

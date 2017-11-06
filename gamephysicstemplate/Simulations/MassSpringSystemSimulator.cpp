@@ -2,9 +2,11 @@
 
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
-	m_iTestCase = EULER;
+	m_iTestCase = 0;
+	setIntegrator(EULER);
+	m_idemoFinish = FALSE;
 	m_externalForce = Vec3();
-	m_inumPoints = m_inumSprings = m_curTime = 0;
+	m_inumPoints = m_inumSprings = 0;
 	m_fMass = 10.f;
 	m_fStiffness = 40.f;
 	addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), FALSE);
@@ -15,20 +17,37 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 
 const char * MassSpringSystemSimulator::getTestCasesStr()
 {
-	return "Euler, Leapfrog, Midpoint";
+	return "Demo 1, Demo 2, Demo 3, Demo 4, Demo 5";
+}
+
+const char * MassSpringSystemSimulator::getIntegCasesStr()
+{
+	return "Euler, Midpoint";
 }
 
 void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
+
+	DUC->update(0.1f);
+	TwType TW_TYPE_INTEGCASE = TwDefineEnumFromString("Integration", getIntegCasesStr());
 	switch (m_iTestCase)
 	{
 	case 0:
+		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
+		break;
+	case 1:
+		break;
+	case 2:
+		break;
+	case 3:
+		break;
+	case 4:
 		TwAddVarRW(DUC->g_pTweakBar, "# Points", TW_TYPE_INT32, &m_inumPoints, "min=1");
 		TwAddVarRW(DUC->g_pTweakBar, "# Springs", TW_TYPE_INT32, &m_inumSprings, "min=1");
 		break;
-	case 1:break;
-	case 2:break;
+	case 5:
+		break;
 	default:break;
 	}
 }
@@ -45,40 +64,55 @@ void MassSpringSystemSimulator::reset()
 
 void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
-	//MassPoints
-	for (int i = 0; i < m_inumPoints; i++) {
+	switch (m_iTestCase) {
+	case 0:
+	case 1:
+	case 2:
+	case 4:
+		//MassPoints
+		for (int i = 0; i < m_inumPoints; i++) {
 
-		DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 5.0f, Vec3(1, 0.5f, 0.65f));
-		DUC->drawSphere(m_points[i].position, Vec3(0.05, 0.05, 0.05));
+			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 5.0f, Vec3(1, 0.5f, 0.65f));
+			DUC->drawSphere(m_points[i].position, Vec3(0.05, 0.05, 0.05));
+		}
+
+		//Springs
+		for (int i = 0; i < m_inumSprings; i++) {
+			DUC->beginLine();
+			DUC->drawLine(m_points[m_springs[i].point1].position, Vec3(0, 1, 0), m_points[m_springs[i].point2].position, Vec3(0, 0, 1));
+			DUC->endLine();
+		}
+		break;
+	case 3:
+		break;	
+	default:
+		break;
 	}
-
-	//Springs
-	for (int i = 0; i < m_inumSprings; i++) {
-		DUC->beginLine();
-		DUC->drawLine(m_points[m_springs[i].point1].position, Vec3(0, 1, 0), m_points[m_springs[i].point2].position, Vec3(0, 0, 1));
-		DUC->endLine();
-	}
-
 }
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 {
 	m_iTestCase = testCase;
-	m_curTime = 0;
 	//reset position and velocity of point that moves
 	//TODO: own method
 	m_points[0].position = Vec3();
 	m_points[0].velocity = Vec3(-1, 0, 0);
 	switch (m_iTestCase)
 	{
-	case EULER:
-		cout << "Euler !\n";
+	case 0:
+		cout << "Demo 1 !\n";
 		break;
-	case LEAPFROG:
-		cout << "Leapfrog\n";
+	case 1:
+		cout << "Demo 2 !\n";
 		break;
-	case MIDPOINT:
-		cout << "Midpoint !\n";
+	case 2:
+		cout << "Demo 3 !\n";
+		break;
+	case 3:
+		cout << "Demo 4 !\n";
+		break;
+	case 4:
+		cout << "Demo 5 !\n";
 		break;
 	default:
 		cout << "Empty Test!\n";
@@ -92,82 +126,99 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 }
 
+void MassSpringSystemSimulator::eulerStep(float timeStep)
+{
+
+	for (int i = 0; i < m_inumPoints; i++) {
+		if (!m_points[i].isFixed)
+		{
+			//iterate velocity and position; acceleration depends on position				
+			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+
+			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
+
+			m_points[i].velocity = m_points[i].velocity + timeStep * acc;
+		}
+	}
+}
+
+void MassSpringSystemSimulator::midpointStep(float timeStep)
+{
+	for (int i = 0; i < m_inumPoints; i++) {
+		if (!m_points[i].isFixed)
+		{
+			//xTilde
+			Vec3 halfPos = m_points[i].position + timeStep / 2 * m_points[i].velocity;
+			//acc at x, time t
+			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+			//vel at xTilde
+			Vec3 halfVel = m_points[i].velocity + timeStep / 2 * acc;
+
+			//new position
+			m_points[i].position = m_points[i].position + timeStep * halfVel;
+			//acc at xTilde, time t+h/2
+			Vec3 halfAcc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * halfPos;
+			//new velocity
+			m_points[i].velocity = m_points[i].velocity + timeStep * halfAcc;
+		}
+	}
+}
+
+void MassSpringSystemSimulator::leapfrogStep(float timeStep)
+{
+	for (int i = 0; i < m_inumPoints; i++) {
+		if (!m_points[i].isFixed)
+		{
+			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+
+			m_points[i].velocity = m_points[i].velocity + timeStep * acc;
+
+			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
+
+		}
+	}
+}
+
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
-	timeStep = 0.005f;
-
 	switch (m_iTestCase) {
-	case EULER:
-
-		for (int i = 0; i < m_inumPoints; i++) {
-			if (!m_points[i].isFixed)
-			{
-				//iterate velocity and position; acceleration depends on position				
-				Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
-
-				m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
-
-				m_points[i].velocity = m_points[i].velocity + timeStep * acc;
-
-				if (m_curTime < timeStep) {
-					cout << "position of mass1 at first step: " << m_points[i].position << "\n";
-					cout << "velocity of mass1 at first step: " << m_points[i].velocity << "\n";
-				}
-			}
+	case 0:
+		
+		timeStep = 0.1f;
+		if (DXUTIsKeyDown('B') && !m_idemoFinish)
+		{
+			!m_iIntegrator ? eulerStep(timeStep) : midpointStep(timeStep);			
+			m_idemoFinish = true;
 		}
+		else {
+			//fuer backport
+			if (!DXUTIsKeyDown('B'))
+				m_idemoFinish = false;
+		}
+		break;
+	case 1:
+		//timeStep = 0.005f;
+		eulerStep(timeStep);
+		break;
+	case 2:
+		//timeStep = 0.005f;
+		midpointStep(timeStep = 0.005f);
+		break;
+	case 3:
 
 		break;
-	case LEAPFROG:
-
-		for (int i = 0; i < m_inumPoints; i++) {
-			if (!m_points[i].isFixed)
-			{
-				Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
-
-				m_points[i].velocity = m_points[i].velocity + timeStep * acc;
-
-				m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
-
-				if (m_curTime < timeStep) {
-					cout << "position of mass1 at first step: " << m_points[i].position << "\n";
-					cout << "velocity of mass1 at first step: " << m_points[i].velocity << "\n";
-				}
-			}
-		}
-
-		break;
-	case MIDPOINT:
-
-		for (int i = 0; i < m_inumPoints; i++) {
-			if (!m_points[i].isFixed)
-			{
-				//xTilde
-				Vec3 halfPos = m_points[i].position + timeStep / 2 * m_points[i].velocity;
-				//acc at x, time t
-				Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
-				//vel at xTilde
-				Vec3 halfVel = m_points[i].velocity + timeStep / 2 * acc;
-
-				//new position
-				m_points[i].position = m_points[i].position + timeStep * halfVel;
-				//acc at xTilde, time t+h/2
-				Vec3 halfAcc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * halfPos;
-				//new velocity
-				m_points[i].velocity = m_points[i].velocity + timeStep * halfAcc;
-
-
-				if (m_curTime < timeStep) {
-					cout << "position of mass1 at first step: " << m_points[i].position << "\n";
-					cout << "velocity of mass1 at first step: " << m_points[i].velocity << "\n";
-				}
-			}
-		}
+	case 4:
+		timeStep = 0.005f;
+		leapfrogStep(timeStep);
 		break;
 	default:
 		break;
 	}
 
-	m_curTime += timeStep;
+	for (int i = 0; i < m_inumPoints; i++) {
+		cout << "demo " << m_iTestCase + 1 << " position of mass1 at first step: " << m_points[i].position << "\n";
+		cout << "demo " << m_iTestCase + 1 << " velocity of mass1 at first step: " << m_points[i].velocity << "\n";
+	}
 
 }
 
