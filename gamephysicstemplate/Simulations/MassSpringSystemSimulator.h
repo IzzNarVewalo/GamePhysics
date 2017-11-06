@@ -61,6 +61,7 @@ private:
 	std::vector<MassPoint> m_points;
 	std::vector<Spring> m_springs;
 	int m_inumPoints, m_inumSprings;
+	float m_curTime;
 
 	// UI Attributes
 	Vec3 m_externalForce;
