@@ -106,8 +106,8 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
 		TwAddVarRW(DUC->g_pTweakBar, "# Points", TW_TYPE_INT32, &m_inumPoints, "min=1");
 		TwAddVarRW(DUC->g_pTweakBar, "# Springs", TW_TYPE_INT32, &m_inumSprings, "min=1");
-		TwAddVarRW(DUC->g_pTweakBar, "stiffness", TW_TYPE_INT32, &m_fStiffness, "min=10");
-		TwAddVarRW(DUC->g_pTweakBar, "mass", TW_TYPE_INT32, &m_fMass, "min=5");
+		TwAddVarRW(DUC->g_pTweakBar, "stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=10");
+		TwAddVarRW(DUC->g_pTweakBar, "mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
 		break;
 	case 5:
 		break;
@@ -197,13 +197,11 @@ void MassSpringSystemSimulator::eulerStep(float timeStep)
 		if (!m_points[i].isFixed)
 		{
 			//iterate velocity and position; acceleration depends on position				
-			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+			Vec3 acc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * m_points[i].position;
 
 			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
 			m_points[i].velocity = m_points[i].velocity + timeStep * acc;
-
-			cout << i << " has " << acc << " " << m_points[i].position << " " << m_points[i].velocity;
 		}
 	}
 }
@@ -216,14 +214,14 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 			//xTilde
 			Vec3 halfPos = m_points[i].position + timeStep / 2 * m_points[i].velocity;
 			//acc at x, time t
-			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+			Vec3 acc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * m_points[i].position;
 			//vel at xTilde
 			Vec3 halfVel = m_points[i].velocity + timeStep / 2 * acc;
 
 			//new position
 			m_points[i].position = m_points[i].position + timeStep * halfVel;
 			//acc at xTilde, time t+h/2
-			Vec3 halfAcc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * halfPos;
+			Vec3 halfAcc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * halfPos;
 			//new velocity
 			m_points[i].velocity = m_points[i].velocity + timeStep * halfAcc;
 		}
@@ -235,7 +233,7 @@ void MassSpringSystemSimulator::leapfrogStep(float timeStep)
 	for (int i = 0; i < m_inumPoints; i++) {
 		if (!m_points[i].isFixed)
 		{
-			Vec3 acc = Vec3(-1.f, -1.f, -1.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+			Vec3 acc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * m_points[i].position;
 
 			m_points[i].velocity = m_points[i].velocity + timeStep * acc;
 
@@ -278,7 +276,9 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		break;
 	case 3:
 		//wenn Anzahl der points nicht mit der wkl länge übereinstrimmt, dann fuege random points hinzu
-
+		
+		//elastic force
+		//euler implementieren
 
 		break;
 	case 4:
