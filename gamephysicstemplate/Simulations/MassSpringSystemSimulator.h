@@ -22,6 +22,14 @@ class MassSpringSystemSimulator:public Simulator{
 public:
 	// Construtors
 	MassSpringSystemSimulator();
+
+	void setupDemo1();
+
+	void resetDemo1();
+
+	void setuoTwoSprings();
+
+	void setupDemo4();
 	
 	// UI Functions
 	const char * getTestCasesStr();
