@@ -69,6 +69,7 @@ private:
 	float m_fStiffness;
 	float m_fDamping;
 	int m_iIntegrator;
+	boolean m_bgravityOn;
 
 	std::vector<MassPoint> m_points;
 	std::vector<Spring> m_springs;
