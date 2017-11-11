@@ -9,8 +9,8 @@
 // Do Not Change
 
 struct MassPoint {
-	Vec3 position, velocity;
-	boolean isFixed;	
+	Vec3 position, velocity, force;
+	boolean isFixed;
 };
 
 struct Spring {

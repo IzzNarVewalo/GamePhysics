@@ -22,10 +22,10 @@ void MassSpringSystemSimulator::setupDemo1()
 	addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), TRUE);
 	//the first and second point in m_points
 	addSpring(0, 1, 1);
-	
+
 	//second option
 	addMassPoint(Vec3(1, 0, 0), Vec3(-1, 0, 0), FALSE);
-	addMassPoint(Vec3(1, 2, 0), Vec3(1, 0, 0), FALSE);	
+	addMassPoint(Vec3(1, 2, 0), Vec3(1, 0, 0), FALSE);
 	addSpring(2, 3, 1);
 	//"Decke"
 	addMassPoint(Vec3(1, 3, 0), Vec3(0, 0, 0), TRUE);
@@ -42,7 +42,7 @@ void MassSpringSystemSimulator::resetDemo1()
 
 	m_points[3].position = Vec3(1, 2, 0);
 	m_points[3].velocity = Vec3(1, 0, 0);
-	
+
 }
 
 
@@ -192,16 +192,35 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::eulerStep(float timeStep)
 {
+	//TODO: gravity
+	for (int i = 0; i < m_inumPoints; i++) {
+		m_points[i].force = Vec3(0.f);
+	}
+
+	//compute internal force and divide by mass of point to get acceleration later
+	for (int i = 0; i < m_inumSprings; i++) {
+		//current length of spring
+		m_springs[i].currentLength = norm(m_points[m_springs[i].point1].position - m_points[m_springs[i].point2].position);
+
+		Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
+
+		Vec3 force = tmp * (m_points[m_springs[i].point1].position - m_points[m_springs[i].point2].position) / (m_springs[i].currentLength);
+		m_points[m_springs[i].point1].force -= force;
+
+		force = tmp * (m_points[m_springs[i].point2].position - m_points[m_springs[i].point1].position) / (m_springs[i].currentLength);
+		m_points[m_springs[i].point2].force -= force;
+	}
 
 	for (int i = m_inumPoints - 1; i >= 0; i--) {
 		if (!m_points[i].isFixed)
 		{
-			//iterate velocity and position; acceleration depends on position				
-			Vec3 acc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * m_points[i].position;
+			//iterate velocity and position; acceleration depends on position
+			//acceleration constists only elastic force
+			//Vec3 acc = Vec3(-1.f, 0.f, 0.f) * (m_fStiffness / m_fMass) * m_points[i].position;
 
 			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
-			m_points[i].velocity = m_points[i].velocity + timeStep * acc;
+			m_points[i].velocity = m_points[i].velocity + timeStep * m_points[i].force / m_fMass;
 		}
 	}
 }
@@ -245,6 +264,7 @@ void MassSpringSystemSimulator::leapfrogStep(float timeStep)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+
 	switch (m_iTestCase) {
 	case 0:
 
@@ -276,7 +296,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		break;
 	case 3:
 		//wenn Anzahl der points nicht mit der wkl länge übereinstrimmt, dann fuege random points hinzu
-		
+
 		//elastic force
 		//euler implementieren
 
