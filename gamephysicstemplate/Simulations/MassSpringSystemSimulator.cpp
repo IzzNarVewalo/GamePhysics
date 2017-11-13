@@ -221,7 +221,10 @@ void MassSpringSystemSimulator::eulerStep(float timeStep)
 			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
 			if (m_points[i].position.y <= -0.5f && m_bgravityOn)
-				m_points[i].velocity *= (-1);
+				m_points[i].velocity.y *= (-0.99f);
+
+			if ((m_points[i].position.x <= -0.5f || m_points[i].position.x > 0.5f) && m_bgravityOn)
+				m_points[i].velocity.x *= (-0.99f);
 
 			m_points[i].velocity = m_points[i].velocity + timeStep * m_points[i].force / m_fMass;
 		}
@@ -277,6 +280,12 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 	{
 		if (!m_points[i].isFixed)
 		{
+			if (m_points[i].position.y <= -0.5f && m_bgravityOn)
+				m_points[i].velocity.y *= (-0.99f);
+
+			if ((m_points[i].position.x <= -0.5f || m_points[i].position.x > 0.5f) && m_bgravityOn)
+				m_points[i].velocity.x *= (-0.99f);
+
 			m_points[i].velocity = m_points[i].velocity + timeStep * tmpPoints[i].force / m_fMass;
 		}
 	}
