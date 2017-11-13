@@ -3,12 +3,9 @@
 MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_iTestCase = 0;
-	setIntegrator(EULER);
 	m_idemoFinish = FALSE;
 	m_externalForce = Vec3();
 	m_inumPoints = m_inumSprings = 0;
-	m_fMass = 10.f;
-	m_fStiffness = 40.f;
 
 	setupDemo1();
 }
@@ -17,6 +14,10 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 //setup the scene
 void MassSpringSystemSimulator::setupDemo1()
 {
+	setIntegrator(EULER);
+	m_fMass = 10.f;
+	m_fStiffness = 40.f;
+
 	while (!m_points.empty()) {
 		m_points.pop_back();
 	}
@@ -48,37 +49,43 @@ void MassSpringSystemSimulator::setupDemo4()
 	m_bgravityOn = TRUE;
 
 	//first option: one mass and one spring
-	addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), FALSE);
-	addMassPoint(Vec3(0, 1, 0), Vec3(1, 0, 0), TRUE);
+	addMassPoint(Vec3(-0.25f, 0.25f, 0), Vec3(-0.7f, 0, 0), FALSE);
+	addMassPoint(Vec3(-0.25f, 0.5f, 0), Vec3(0.7f, 0, 0), TRUE);
 	//the first and second point in m_points
-	addSpring(0, 1, 1);
+	addSpring(0, 1, 0.25f);
 
 	//second option: two masses and two springs
-	addMassPoint(Vec3(0.5f, 0, 0), Vec3(-1, 0, 0), FALSE);
-	addMassPoint(Vec3(0.5f, 1, 0), Vec3(1, 0, 0), FALSE);
-	addSpring(2, 3, 1);
+	addMassPoint(Vec3(0.25f, 0.498f, 0), Vec3(-0.2, 0, 0), FALSE);
+	addMassPoint(Vec3(0.25f, 0.499f, 0), Vec3(0.1, 0, 0), FALSE);
+	addSpring(2, 3, 0.001f);
 	//"ceil"
-	addMassPoint(Vec3(0.5f, 2, 0), Vec3(0, 0, 0), TRUE);
-	addSpring(3, 4, 1);
+	addMassPoint(Vec3(0.5f, 0.5f, 0), Vec3(0, 0, 0), TRUE);
+	addSpring(3, 4, 0.001f);
 
 	//third option: some figure, where ten mass points are connected via springs
-	addMassPoint(Vec3(0.f, -0.5f, 0), Vec3(-1, 0, 0), FALSE);
-	addMassPoint(Vec3(-0.1f, -0.6f, 0), Vec3(1, 0, 0), FALSE);
-	addMassPoint(Vec3(-0.2f, -0.7f, 0), Vec3(-1, 0, 0), FALSE);
-	addMassPoint(Vec3(0.1f, -0.8f, 0), Vec3(1, 0, 0), FALSE);
-	addMassPoint(Vec3(0.2f, -0.9f, 0), Vec3(-1, 0, 0), FALSE);
-	addSpring(5, 6, 2);
-	addSpring(5, 7, 1);
-	addSpring(5, 8, 1);
-	addSpring(5, 9, 1);
-	addSpring(6, 7, 3);
-	addSpring(6, 8, 1);
-	addSpring(6, 9, 2);
-	addSpring(7, 8, 0.5f);
-	addSpring(7, 9, 1);
-	addSpring(8, 9, 1);
+	addMassPoint(Vec3(0.f, -0.3f, 0), Vec3(-0.5f, 0, 0), FALSE);
+	addMassPoint(Vec3(-0.1f, -0.4f, 0), Vec3(0.1f, 0, 0), FALSE);
+	addMassPoint(Vec3(0.f, -0.4f, 0), Vec3(-0.1f, 0, 0), FALSE);
+	addMassPoint(Vec3(0.1f, -0.4f, 0), Vec3(0.5f, 0, 0), FALSE);
+	addMassPoint(Vec3(0.f, -0.5f, 0), Vec3(-0.1f, 0, 0), FALSE);
+	addSpring(5, 6, 0.01f);
+	addSpring(5, 7, 0.01f);
+	addSpring(5, 8, 0.01f);
+	addSpring(5, 9, 0.02f);
+	addSpring(6, 7, 0.01f);
+	addSpring(6, 8, 0.02f);
+	addSpring(6, 9, 0.01f);
+	addSpring(7, 8, 0.01f);
+	addSpring(7, 9, 0.01f);
+	addSpring(8, 9, 0.01f);
+	
+	//first option: one mass and one spring
+	addMassPoint(Vec3(0, 0.25f, 0), Vec3(0, 0, 0), FALSE);
+	addMassPoint(Vec3(0, 0.5f, 0), Vec3(0.7, 0, 0), TRUE);
+	//the first and second point in m_points
+	addSpring(10, 11, 0.25f);
 
-	setIntegrator(EULER);
+	setIntegrator(MIDPOINT);
 }
 
 const char * MassSpringSystemSimulator::getTestCasesStr()
@@ -108,10 +115,8 @@ void MassSpringSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 		break;
 	case 3:
 		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
-		TwAddVarRW(DUC->g_pTweakBar, "# Points", TW_TYPE_INT32, &m_inumPoints, "min=1");
-		TwAddVarRW(DUC->g_pTweakBar, "# Springs", TW_TYPE_INT32, &m_inumSprings, "min=1");
-		TwAddVarRW(DUC->g_pTweakBar, "stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=10");
-		TwAddVarRW(DUC->g_pTweakBar, "mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
+		TwAddVarRW(DUC->g_pTweakBar, "Stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=10");
+		TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
 		break;
 	case 4:
 		break;
@@ -133,18 +138,32 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 	case 1:
 	case 2:
 	case 4:
-	case 3:
 		//MassPoints
 		for (int i = 0; i < m_inumPoints; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 5.0f, Vec3(1, 0.5f, 0.65f));
-			DUC->drawSphere(m_points[i].position, Vec3(0.05, 0.05, 0.05));
+			DUC->drawSphere(m_points[i].position, Vec3(0.05f, 0.05f, 0.05f));
 		}
 
 		//Springs
 		for (int i = 0; i < m_inumSprings; i++) {
 			DUC->beginLine();
 			DUC->drawLine(m_points[m_springs[i].point1].position, Vec3(0, 1, 0), m_points[m_springs[i].point2].position, Vec3(0, 0, 1));
+			DUC->endLine();
+		}
+		break;
+	case 3:
+		//MassPoints
+		for (int i = 0; i < m_inumPoints; i++) {
+
+			DUC->setUpLighting(Vec3(), Vec3(1, 0, 0), 5.0f, Vec3(1, 0.5f, 0.65f));
+			DUC->drawSphere(m_points[i].position, Vec3(0.02f, 0.02f, 0.02f));
+		}
+
+		//Springs
+		for (int i = 0; i < m_inumSprings; i++) {
+			DUC->beginLine();
+			DUC->drawLine(m_points[m_springs[i].point1].position, Vec3(1, 1, 0), m_points[m_springs[i].point2].position, Vec3(1, 0, 1));
 			DUC->endLine();
 		}
 		break;
@@ -214,10 +233,10 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 		if (!m_points[i].isFixed)
 		{
 			//xTilde
-			tmpPoints[i].position = m_points[i].position + timeStep / 2 * m_points[i].velocity;
+			tmpPoints[i].position = m_points[i].position + (timeStep / 2) * m_points[i].velocity;
 
 			//vel at xTilde
-			tmpPoints[i].velocity = m_points[i].velocity + timeStep / 2 * m_points[i].force / m_fMass;
+			tmpPoints[i].velocity = m_points[i].velocity + (timeStep / 2) * m_points[i].force / m_fMass;
 
 			//new position
 			m_points[i].position = m_points[i].position + timeStep * tmpPoints[i].velocity;
@@ -229,7 +248,7 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 					m_points[i].force = Vec3(0.f);
 				}
 				else {
-					m_points[i].force = Vec3(0.f, -9.81f, 0.f);
+					m_points[i].force = Vec3(0.f, -8.81f, 0.f);
 				}
 			}
 		}
@@ -281,7 +300,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 			m_points[i].force = Vec3(0.f);
 		}
 		else {
-			m_points[i].force = Vec3(0.f, -9.81f, 0.f);
+			m_points[i].force = Vec3(0.f, -8.81f, 0.f);
 		}
 	}
 
@@ -329,8 +348,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		midpointStep(timeStep);
 		break;
 	case 3:
-		//TODO: anzahl der points anpassen
-		//wenn Anzahl der points nicht mit der wkl länge übereinstrimmt, dann fuege random points hinzu
+
 		//TODO: interaction with floor and walls
 
 		!m_iIntegrator ? eulerStep(timeStep) : midpointStep(timeStep);
