@@ -7,13 +7,14 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_externalForce = Vec3();
 	m_inumPoints = m_inumSprings = 0;
 
+	//demo1 appears as default
 	setupDemo1();
 }
 
-//reset position and velocity of points that move each change
-//setup the scene
+//setup the scene 
 void MassSpringSystemSimulator::setupDemo1()
 {
+	//clear attributes and scene
 	setIntegrator(EULER);
 	m_fMass = 10.f;
 	m_fStiffness = 40.f;
@@ -29,6 +30,7 @@ void MassSpringSystemSimulator::setupDemo1()
 	m_inumPoints = m_inumSprings = 0;
 	m_bgravityOn = FALSE;
 
+	//add two points and a spring
 	addMassPoint(Vec3(0, 0, 0), Vec3(-1, 0, 0), FALSE);
 	addMassPoint(Vec3(0, 2, 0), Vec3(1, 0, 0), FALSE);
 	//the first and second point in m_points
@@ -37,6 +39,7 @@ void MassSpringSystemSimulator::setupDemo1()
 
 void MassSpringSystemSimulator::setupDemo4()
 {
+	//clear previous setting
 	while (!m_points.empty()) {
 		m_points.pop_back();
 	}
@@ -62,7 +65,7 @@ void MassSpringSystemSimulator::setupDemo4()
 	addMassPoint(Vec3(0.5f, 0.5f, 0), Vec3(0, 0, 0), TRUE);
 	addSpring(3, 4, 0.001f);
 
-	//third option: some figure, where ten mass points are connected via springs
+	//third option: a pyramid
 	addMassPoint(Vec3(0.f, -0.3f, 0), Vec3(-0.5f, 0, 0), FALSE);
 	addMassPoint(Vec3(-0.1f, -0.4f, 0), Vec3(0.1f, 0, 0), FALSE);
 	addMassPoint(Vec3(0.f, -0.4f, 0), Vec3(-0.1f, 0, 0), FALSE);
@@ -79,10 +82,9 @@ void MassSpringSystemSimulator::setupDemo4()
 	addSpring(7, 9, 0.01f);
 	addSpring(8, 9, 0.01f);
 	
-	//first option: one mass and one spring
+	//fourth option: one mass and one spring (vertical)
 	addMassPoint(Vec3(0, 0.25f, 0), Vec3(0, 0, 0), FALSE);
 	addMassPoint(Vec3(0, 0.5f, 0), Vec3(0.7, 0, 0), TRUE);
-	//the first and second point in m_points
 	addSpring(10, 11, 0.25f);
 
 	setIntegrator(EULER);
@@ -153,6 +155,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 		}
 		break;
 	case 3:
+		//different colours and size of spheres
 		//MassPoints
 		for (int i = 0; i < m_inumPoints; i++) {
 
@@ -202,8 +205,8 @@ void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
 		cout << "Empty Test!\n";
 		break;
 	}
-	cout << "position of mass0 at time 0: " << m_points[0].position << "\n";
-	cout << "velocity of mass0 at time 0: " << m_points[0].velocity << "\n";
+	//cout << "position of mass0 at time 0: " << m_points[0].position << "\n";
+	//cout << "velocity of mass0 at time 0: " << m_points[0].velocity << "\n";
 }
 
 void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
@@ -216,16 +219,18 @@ void MassSpringSystemSimulator::eulerStep(float timeStep)
 		if (!m_points[i].isFixed)
 		{
 			//iterate velocity and position; acceleration depends on force
-			//acceleration constists only of elastic force
 
 			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
+			//bounce when hit the floor & velocity damping
 			if (m_points[i].position.y <= -0.5f && m_bgravityOn)
 				m_points[i].velocity.y *= (-0.99f);
 
+			//bounce when hit the walls & velocity damping
 			if ((m_points[i].position.x <= -0.5f || m_points[i].position.x > 0.5f) && m_bgravityOn)
-				m_points[i].velocity.x *= (-0.99f);
+				m_points[i].velocity.x *= (-0.90f);
 
+			//divide force by mass of point to get the acceleration to compute the velocity
 			m_points[i].velocity = m_points[i].velocity + timeStep * m_points[i].force / m_fMass;
 		}
 	}
@@ -261,7 +266,7 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 	}
 
 	//acc at xTilde, time t+h/2
-	//compute internal force and divide by mass of point to get acceleration later
+	//compute internal force for all points in the system
 	for (int i = 0; i < m_inumSprings; i++) {
 		//current length of spring
 		m_springs[i].currentLength = norm(tmpPoints[m_springs[i].point1].position - tmpPoints[m_springs[i].point2].position);
@@ -280,12 +285,13 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 	{
 		if (!m_points[i].isFixed)
 		{
+			//bounding with floor
 			if (m_points[i].position.y <= -0.5f && m_bgravityOn)
 				m_points[i].velocity.y *= (-0.99f);
-
+			//bounding with walls
 			if ((m_points[i].position.x <= -0.5f || m_points[i].position.x > 0.5f) && m_bgravityOn)
-				m_points[i].velocity.x *= (-0.99f);
-
+				m_points[i].velocity.x *= (-0.90f);
+			//divide the force by mass of the point to get the acceleration 
 			m_points[i].velocity = m_points[i].velocity + timeStep * tmpPoints[i].force / m_fMass;
 		}
 	}
@@ -306,6 +312,7 @@ void MassSpringSystemSimulator::leapfrogStep(float timeStep)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+	//if gravity on, accelerate in -y-direction
 	for (int i = 0; i < m_inumPoints; i++) {
 		if (!m_bgravityOn)
 		{
@@ -316,7 +323,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		}
 	}
 
-	//compute internal force and divide by mass of point to get acceleration later
+	//compute internal force for every point; acceleration depends only on elastic forces
 	for (int i = 0; i < m_inumSprings; i++) {
 		//current length of spring
 		m_springs[i].currentLength = norm(m_points[m_springs[i].point1].position - m_points[m_springs[i].point2].position);
@@ -334,19 +341,21 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	case 0:
 
 		timeStep = 0.1f;
+		//we use B for timestep
 		if (DXUTIsKeyDown('B') && !m_idemoFinish)
 		{
 			!m_iIntegrator ? eulerStep(timeStep) : midpointStep(timeStep);
 
 			for (int i = 0; i < m_inumPoints; i++) {
-				cout << "demo " << m_iTestCase + 1 << " position of mass " << i << " at first step: " << m_points[i].position << "\n";
-				cout << "demo " << m_iTestCase + 1 << " velocity of mass " << i << " at first step: " << m_points[i].velocity << "\n";
+				cout << "demo " << m_iTestCase + 1 << " position of mass " << i << " : " << m_points[i].position << "\n";
+				cout << "demo " << m_iTestCase + 1 << " velocity of mass " << i << " : " << m_points[i].velocity << "\n";
 			}
+			cout << "\n";
 
 			m_idemoFinish = true;
 		}
 		else {
-			//fuer backport
+			//for backport
 			if (!DXUTIsKeyDown('B'))
 				m_idemoFinish = false;
 		}
@@ -360,11 +369,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 		midpointStep(timeStep);
 		break;
 	case 3:
-
-		//TODO: interaction with floor and walls
-
 		!m_iIntegrator ? eulerStep(timeStep) : midpointStep(timeStep);
-
 		break;
 	case 4:
 		//timeStep = 0.005f;
