@@ -85,7 +85,7 @@ void MassSpringSystemSimulator::setupDemo4()
 	//the first and second point in m_points
 	addSpring(10, 11, 0.25f);
 
-	setIntegrator(MIDPOINT);
+	setIntegrator(EULER);
 }
 
 const char * MassSpringSystemSimulator::getTestCasesStr()
@@ -220,6 +220,9 @@ void MassSpringSystemSimulator::eulerStep(float timeStep)
 
 			m_points[i].position = m_points[i].position + timeStep * m_points[i].velocity;
 
+			if (m_points[i].position.y <= -0.5f && m_bgravityOn)
+				m_points[i].velocity *= (-1);
+
 			m_points[i].velocity = m_points[i].velocity + timeStep * m_points[i].force / m_fMass;
 		}
 	}
@@ -248,7 +251,7 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 					m_points[i].force = Vec3(0.f);
 				}
 				else {
-					m_points[i].force = Vec3(0.f, -8.81f, 0.f);
+					m_points[i].force = Vec3(0.f, -9.81f, 0.f);
 				}
 			}
 		}
@@ -300,7 +303,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 			m_points[i].force = Vec3(0.f);
 		}
 		else {
-			m_points[i].force = Vec3(0.f, -8.81f, 0.f);
+			m_points[i].force = Vec3(0.f, -9.81f, 0.f);
 		}
 	}
 
