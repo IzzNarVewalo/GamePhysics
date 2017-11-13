@@ -4,7 +4,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 {
 	m_iTestCase = 0;
 	m_idemoFinish = FALSE;
-	m_externalForce = Vec3();
+	m_externalForce = Vec3(0.f, -9.81f, 0.f);
 	m_inumPoints = m_inumSprings = 0;
 
 	//demo1 appears as default
@@ -259,7 +259,7 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 					m_points[i].force = Vec3(0.f);
 				}
 				else {
-					m_points[i].force = Vec3(0.f, -9.81f, 0.f);
+					m_points[i].force = m_externalForce;
 				}
 			}
 		}
@@ -319,7 +319,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 			m_points[i].force = Vec3(0.f);
 		}
 		else {
-			m_points[i].force = Vec3(0.f, -9.81f, 0.f);
+			m_points[i].force = m_externalForce;
 		}
 	}
 
