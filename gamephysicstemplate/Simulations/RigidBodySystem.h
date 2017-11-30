@@ -2,7 +2,7 @@
 #include "Simulator.h"
 
 //this class defines a system of rigidbodies
-//every rigidbody is defined by its position, orientation, velocity, torque
+//every rigidbody is defined by its position, orientation, velocity
 
 //defines one rigidbody
 struct Rigidbody{

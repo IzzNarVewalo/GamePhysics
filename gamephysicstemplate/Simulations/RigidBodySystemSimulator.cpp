@@ -5,15 +5,19 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 {
 	m_pRigidBodySystem = new RigidBodySystem();
 	m_externalForce = Vec3 (1.0f, 1.0f, .0f);
+	m_iTestCase = 0;
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
 {
-	return nullptr;
+	return "Demo 1, Demo 2, Demo 3, Demo 4";
 }
 
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
+	this->DUC = DUC;
+	DUC->update(0.1f);
+	
 }
 
 void RigidBodySystemSimulator::reset()
@@ -22,6 +26,14 @@ void RigidBodySystemSimulator::reset()
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
+	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
+	int numTemp = m_pRigidBodySystem->getNumRigidBodies();
+	
+	DUC->setUpLighting(Vec3(), 0.4f*Vec3(1, 1, 1), 2000.0f, Vec3(0.5f, 0.5f, 0.5f));
+
+	for (int i = 0; i < numTemp; i++) {
+
+	}
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
