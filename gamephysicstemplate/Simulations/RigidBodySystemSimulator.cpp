@@ -6,6 +6,10 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	m_pRigidBodySystem = new RigidBodySystem();
 	m_externalForce = Vec3 (1.0f, 1.0f, .0f);
 	m_iTestCase = 0;
+
+	//fuer demo 1
+	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
+	setOrientationOf(0, Quat(90));
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
@@ -17,7 +21,7 @@ void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
 	DUC->update(0.1f);
-	
+	DUC->drawRigidBody(Mat4(2));
 }
 
 void RigidBodySystemSimulator::reset()
@@ -32,7 +36,7 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCont
 	DUC->setUpLighting(Vec3(), 0.4f*Vec3(1, 1, 1), 2000.0f, Vec3(0.5f, 0.5f, 0.5f));
 
 	for (int i = 0; i < numTemp; i++) {
-
+		DUC->drawRigidBody(Mat4(XMMATRIX()));
 	}
 }
 
@@ -87,12 +91,8 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 }
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
-{
-	Rigidbody rigid;
-	rigid.m_boxCenter = position;
-	rigid.m_boxCenter = size;
-	rigid.m_imass = mass;
-	m_pRigidBodySystem->getRigidBodySystem().push_back(rigid);
+{	
+	m_pRigidBodySystem->addRigidBody(position, size, mass);
 	m_pRigidBodySystem->incNumRigidBodies();
 }
 

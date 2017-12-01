@@ -21,6 +21,7 @@ public:
 	int getNumRigidBodies();
 	void decNumRigidBodies();
 	void incNumRigidBodies();
+	void addRigidBody(Vec3 position, Vec3 size, int mass);
 	
 private:
 	//Attributes
