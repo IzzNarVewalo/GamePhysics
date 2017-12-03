@@ -16,7 +16,7 @@ struct Rigidbody{
 	Quat m_orientation;
 	int m_imass;
 	//hopefully inertia tensor
-	XMMATRIX inertiaTensor;	
+	Mat4 inertiaTensor;	
 	//mass points producing toques -> m_torque is total torque
 	std::vector<TorqueChar> m_pointsTorque;
 };
@@ -29,15 +29,24 @@ public:
 	//Functions
 	std::vector<Rigidbody> getRigidBodySystem();
 	int getNumRigidBodies();
+	int getTotalMass();
 	void decNumRigidBodies();
 	void incNumRigidBodies();
 	void setTotalTorque(int i, Vec3 torque);
 	void setTotalForce(int i, Vec3 force);
+	void setCentralOfMassPosition(int i, Vec3 pos);
+	void setCentralOfMassVelocity(int i, Vec3 vel);
+	void setRotation(int i, Quat rot);
+	void setAngularVelocity(int i, Vec3 w);
 	int addRigidBody(Vec3 position, Vec3 size, int mass);
+
+	Mat4 getTranslatMatOf(int i);
+	Mat4 getRotMatOf(int i);	
+	Mat4 getScaleMatOf(int i);
 		
 private:
 	//Attributes
 	std::vector<Rigidbody> m_rigidbodySystem;
 	int m_iNumRigidBodies;
-	float m_fTotalMass;
+	int m_fTotalMass;
 };

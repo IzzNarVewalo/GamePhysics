@@ -4,12 +4,13 @@
 RigidBodySystemSimulator::RigidBodySystemSimulator()
 {
 	m_pRigidBodySystem = new RigidBodySystem();
-	m_externalForce = Vec3 (1.0f, 1.0f, .0f);
+	m_externalForce = Vec3(1.0f, 1.0f, .0f);
 	m_iTestCase = 0;
 
 	//fuer demo 1
 	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
-	setOrientationOf(0, Quat(90));
+
+	setOrientationOf(0, Quat(0, 0, M_PI_2));
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
@@ -20,33 +21,42 @@ const char * RigidBodySystemSimulator::getTestCasesStr()
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
-	DUC->update(0.1f);
-	DUC->drawRigidBody(Mat4(2));
 }
 
 void RigidBodySystemSimulator::reset()
 {
+	m_mouse.x = m_mouse.y = 0;
+	m_trackmouse.x = m_trackmouse.y = 0;
+	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 }
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
 	int numTemp = m_pRigidBodySystem->getNumRigidBodies();
-	
-	DUC->setUpLighting(Vec3(), 0.4f*Vec3(1, 1, 1), 2000.0f, Vec3(0.5f, 0.5f, 0.5f));
+
+	DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 1), 20.0f, Vec3(0.5f, 0.5f, 0.5f));
 
 	for (int i = 0; i < numTemp; i++) {
-		DUC->drawRigidBody(Mat4(XMMATRIX()));
+		
+		Mat4 u = m_pRigidBodySystem->getRotMatOf(i);
+		Mat4 res = m_pRigidBodySystem->getScaleMatOf(i) * u * m_pRigidBodySystem->getTranslatMatOf(i);
+		DUC->drawRigidBody(res);		
 	}
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
+	int i = testCase;
+	switch (i) {
+	case 0: cout << "demo 1!\n";
+	default: cout << "default\n";
+	}
 }
 
 //page 25 'external forces'
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
-{	
+{
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
 	Vec3 tempTotalTorque = Vec3(.0f);
 	Vec3 tempTotalForce = Vec3(.0f);
@@ -68,7 +78,13 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
 	//euler integration at page 25
-
+	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
+	for (int i = 0; i < m_pRigidBodySystem->getNumRigidBodies(); i++) {
+		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
+		m_pRigidBodySystem->setCentralOfMassVelocity(i, (temp[i].m_velocity + timeStep * temp[i].m_force / m_pRigidBodySystem->getTotalMass()));
+		m_pRigidBodySystem->setRotation(i, (temp[i].m_orientation + timeStep * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f)).unit());
+		m_pRigidBodySystem->setCentralOfMassVelocity(i, (temp[i].m_angularVelocity + timeStep * (temp[i].inertiaTensor).inverse().transformVector(temp[i].m_torque)));
+	}
 
 }
 
@@ -112,8 +128,8 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 }
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
-{	
-	m_pRigidBodySystem->addRigidBody(position, size, mass);	
+{
+	m_pRigidBodySystem->addRigidBody(position, size, mass);
 }
 
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)

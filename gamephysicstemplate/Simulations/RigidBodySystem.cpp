@@ -16,6 +16,11 @@ int RigidBodySystem::getNumRigidBodies()
 	return m_iNumRigidBodies;
 }
 
+int RigidBodySystem::getTotalMass()
+{
+	return m_fTotalMass;
+}
+
 void RigidBodySystem::decNumRigidBodies()
 {
 	m_iNumRigidBodies--;
@@ -34,6 +39,26 @@ void RigidBodySystem::setTotalTorque(int i, Vec3 torque)
 void RigidBodySystem::setTotalForce(int i, Vec3 force)
 {
 	m_rigidbodySystem[i].m_force = force;
+}
+
+void RigidBodySystem::setCentralOfMassPosition(int i, Vec3 pos)
+{
+	m_rigidbodySystem[i].m_boxCenter = pos;
+}
+
+void RigidBodySystem::setCentralOfMassVelocity(int i, Vec3 vel)
+{
+	m_rigidbodySystem[i].m_velocity = vel;
+}
+
+void RigidBodySystem::setRotation(int i, Quat rot)
+{
+	m_rigidbodySystem[i].m_orientation = rot;
+}
+
+void RigidBodySystem::setAngularVelocity(int i, Vec3 w)
+{
+	m_rigidbodySystem[i].m_angularVelocity = w;
 }
 
 int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
@@ -61,6 +86,28 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 	m_iNumRigidBodies++;
 
 	return m_iNumRigidBodies - 1;
+}
+
+Mat4 RigidBodySystem::getTranslatMatOf(int i)
+{
+	Mat4 temp;
+	temp.initTranslation(m_rigidbodySystem[i].m_boxCenter.x,m_rigidbodySystem[i].m_boxCenter.y,m_rigidbodySystem[i].m_boxCenter.z);
+	if (m_rigidbodySystem[i].m_boxCenter.x == 0 && m_rigidbodySystem[i].m_boxCenter.y == 0 && m_rigidbodySystem[i].m_boxCenter.z == 0) {
+		temp.initTranslation(1, 1, 1);
+	}
+	return temp;
+}
+
+Mat4 RigidBodySystem::getRotMatOf(int i)
+{
+	return m_rigidbodySystem[i].m_orientation.getRotMat();
+}
+
+Mat4 RigidBodySystem::getScaleMatOf(int i)
+{
+	Mat4 temp;
+	temp.initScaling(m_rigidbodySystem[i].m_boxSize.x,m_rigidbodySystem[i].m_boxSize.y,m_rigidbodySystem[i].m_boxSize.z);
+	return temp;
 }
 
 
