@@ -1,4 +1,5 @@
 #include "RigidBodySystemSimulator.h"
+#include "collisionDetect.h"
 
 int j = -1;
 float m_fextraForce = 1;
@@ -10,7 +11,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	first = second = true;
 
 	//fuer demo 1
-	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);	
+	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
 	setOrientationOf(0, Quat(0, 0, M_PI_2));
 
 	j = -1;
@@ -83,14 +84,14 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		}
 		//erstelle neues setup mit zwei koerpern
 		addRigidBody(Vec3(0.5f, 0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.5f), 2);
-		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.5f), 3);
-		
+		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.8f), 3);
+
 		//xi und fi für torques setzen		
 		//m_pRigidBodySystem->addTorque(0, Vec3(0.5f, 0.5f, 0.0f), Vec3(-1.0f, -1.0f, .0f));
 		//m_pRigidBodySystem->addTorque(1, Vec3(0.3f, 0.5f, 0.25f), Vec3(1.0f, 1.0f, .0f));
-		
-		setOrientationOf(0, Quat(0, 0, M_PI_2));
-		setOrientationOf(1, Quat(0, 0, 0));
+
+		setOrientationOf(0, Quat(M_PI_2, 0, M_PI_2));
+		setOrientationOf(1, Quat(M_PI_2, M_PI_4, 0));
 		break;
 	default: cout << "default\n";
 	}
@@ -130,7 +131,7 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
-	//euler integration at page 25
+	//euler integration at page 60
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
 	int num = m_pRigidBodySystem->getNumRigidBodies();
 
@@ -139,24 +140,20 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
 		//v linear velocity
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
-		//r
-		Quat orient = temp[i].m_orientation + (timeStep)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
+		//r see page 58
+		Quat orient = temp[i].m_orientation + (timeStep/2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
 		setOrientationOf(i, (orient.unit()));
-		//w angular velocity		
-		m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].m_torque);
+		//L angular momentum page 56		
+		m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum + timeStep * temp[i].m_torque);
 
-		//L angular momentum -> we do not need it, as we use the second equation
-		/*Mat4 tr = m_pRigidBodySystem->getRotMatOf(i);
+		//w angular velocity
+		Mat4 tr = m_pRigidBodySystem->getRotMatOf(i);
 		tr.transpose();
 
+		//calculate the inverse inertia tensor
 		temp[i].inertiaTensor = m_pRigidBodySystem->getRotMatOf(i) * temp[i].inertiaTensor * tr;
-		m_pRigidBodySystem->setAngularMomentum(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularVelocity));
-		*/
-
-		//I do not know why this does not work, maybe the factor is just too big, so it rotates too fast
-		//m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].inert.transformVector(temp[i].m_torque));
-
-
+		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularMomentum));
+		
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";
 			cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(i) << ", " << getLinearVelocityOfRigidBody(i) << "\n";
@@ -176,6 +173,44 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 
 				cout << "world space velocity of point (0.3 0.5 0.25) in world space (" << point << "): " << vel << "\n";
 				second = false;
+			}
+		}
+	}
+
+	//check for collisions
+	if (m_iTestCase >= 2) {
+
+		std::vector<Vec3> relVelColl;
+
+		for (int i = 0; i < num; i++) {
+			for (int j = 0; j < num, i != j; j++) {
+				if (temp[j].fixed) {
+
+					GamePhysics::Mat4 AM = m_pRigidBodySystem->calcTransformMatrixOf(j);
+
+					GamePhysics::Mat4 BM = m_pRigidBodySystem->calcTransformMatrixOf(i);
+
+					CollisionInfo simpletest = checkCollisionSAT(AM, BM);
+
+					if (simpletest.isValid) {
+						std::printf("Collision\n");
+						Vec3 relVel = (temp[j].m_velocity - temp[i].m_velocity);
+						Vec3 deltaVel = relVel * simpletest.normalWorld;
+						float indicator = deltaVel.x;
+						if (indicator <= 0) {
+							//calculate impulse J
+							//they should stop flying into each other
+							//bouncies: c=1 fully elasitc c=0 plastic
+							float c = 0;
+							Vec3 J = -(1 + c) * deltaVel;
+								J.safeDivide(1/temp[j].m_imass + 1/temp[i].m_imass );
+							//velocity update
+								setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld/temp[j].m_imass));
+								setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld/temp[i].m_imass));
+								
+						}
+					}
+				}
 			}
 		}
 	}
