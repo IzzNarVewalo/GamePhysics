@@ -1,14 +1,19 @@
 #include "RigidBodySystemSimulator.h"
 
+int j = -1;
+float m_fextraForce = 1;
+
 RigidBodySystemSimulator::RigidBodySystemSimulator()
 {
-	m_pRigidBodySystem = new RigidBodySystem();	
+	m_pRigidBodySystem = new RigidBodySystem();
 	m_iTestCase = 0;
 	first = second = true;
 
 	//fuer demo 1
 	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
 	setOrientationOf(0, Quat(0, 0, M_PI_2));
+
+	j = -1;
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
@@ -19,6 +24,12 @@ const char * RigidBodySystemSimulator::getTestCasesStr()
 void RigidBodySystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 {
 	this->DUC = DUC;
+	switch (m_iTestCase) {
+	case 1: TwAddVarRW(DUC->g_pTweakBar, "extra force factor", TW_TYPE_FLOAT, &m_fextraForce, "min=1 step=0.1 max=5");
+		break;
+	default:
+		break;
+	}
 }
 
 void RigidBodySystemSimulator::reset()
@@ -45,11 +56,25 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 	int i = testCase;
 	switch (i) {
 	case 0: cout << "demo 1!\n";
-		m_pRigidBodySystem->reset();
+		m_fextraForce = 1.0f;
+		m_iTestCase = 0;
+		if (i != j)
+			m_pRigidBodySystem->reset2();
 		first = true;
 		break;
+	case 1: cout << "demo2!\n";
+		m_iTestCase = 1;
+		if (i != j) {
+			m_pRigidBodySystem->reset2();
+			m_fextraForce = 1.0f;
+		}
+		break;
+
 	default: cout << "default\n";
 	}
+
+	m_pRigidBodySystem->reset();
+	j = i;
 }
 
 //page 25 'external forces'
@@ -71,7 +96,7 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 		//set total Torque
 		m_pRigidBodySystem->setTotalTorque(i, tempTotalTorque);
 		//set total Force
-		m_pRigidBodySystem->setTotalForce(i, tempTotalForce);
+		m_pRigidBodySystem->setTotalForce(i, tempTotalForce * m_fextraForce);
 	}
 
 }
@@ -84,16 +109,16 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / m_pRigidBodySystem->getTotalMass()));
 		setOrientationOf(i, (temp[i].m_orientation + timeStep * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f)).unit());
-				
+
 		//Inverse von inertia tensor
 		m_pRigidBodySystem->setAngularMomentum(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularVelocity));
-		
-		m_pRigidBodySystem->setAngularVelocity(i,temp[i].inert * temp[i].m_angularMomentum);
+
+		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inert * temp[i].m_angularMomentum);
 
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";
 			cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(0) << ", " << getLinearVelocityOfRigidBody(0) << "\n";
-			
+
 			Vec3 point = temp[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(0).transformVector(Vec3(0.3f, 0.5f, 0.25f));
 			Vec3 vel = temp[i].m_velocity + cross(temp[i].m_angularVelocity, Vec3(0.3f, 0.5f, 0.25f));
 

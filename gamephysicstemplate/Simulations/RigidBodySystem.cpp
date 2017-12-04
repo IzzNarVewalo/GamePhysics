@@ -148,5 +148,19 @@ void RigidBodySystem::reset()
 	m_fTotalMass = 0;*/
 }
 
+//setup for demo2. reset everything to 0
+void RigidBodySystem::reset2()
+{
+	for (int i = 0; i < m_iNumRigidBodies; i++) {
+		m_rigidbodySystem[i].m_boxCenter = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_velocity = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_angularMomentum = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_angularVelocity = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_torque = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_force = Vec3(.0f, .0f, .0f);
+		m_rigidbodySystem[i].m_orientation = Quat(0, 0, M_PI_2);
+	}
+}
+
 
 

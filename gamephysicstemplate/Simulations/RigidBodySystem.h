@@ -48,6 +48,7 @@ public:
 	Vec3 getXiOf(int i, int j);
 
 	void reset();
+	void reset2();
 		
 private:
 	//Attributes
