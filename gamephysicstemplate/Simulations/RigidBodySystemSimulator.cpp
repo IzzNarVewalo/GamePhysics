@@ -10,7 +10,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	//fuer demo 1
 	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
 
-	setOrientationOf(0, Quat(0, 0, M_PI_2));
+	setOrientationOf(0, Quat(0, 0, M_PI_2));	
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
@@ -28,6 +28,7 @@ void RigidBodySystemSimulator::reset()
 	m_mouse.x = m_mouse.y = 0;
 	m_trackmouse.x = m_trackmouse.y = 0;
 	m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
+
 }
 
 void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
@@ -38,7 +39,6 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCont
 
 	for (int i = 0; i < numTemp; i++) {
 
-		Mat4 r = Mat4(1.f, .0f, .0f, .0f, .0f, 0.6f, .0f, .0f, .0f, .0f, 0.5f, 0.f, .0f, .0f, .0f, 1.0f);
 		Mat4 r2 = m_pRigidBodySystem->calcTransformMatrixOf(i);
 		DUC->drawRigidBody(r2);		
 	}
@@ -65,7 +65,7 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 
 		int tempTorqueNum = temp[i].m_pointsTorque.size();
 		for (int j = 0; j < tempTorqueNum; j++) {
-			tempTotalTorque += cross(temp[i].m_pointsTorque[j].xi, temp[i].m_pointsTorque[j].fi);
+			tempTotalTorque += cross((temp[i].m_pointsTorque[j].xi - temp[i].m_boxCenter), temp[i].m_pointsTorque[j].fi);
 			tempTotalForce += temp[i].m_pointsTorque[j].fi;
 		}
 
@@ -79,16 +79,14 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
-	/*
-	//euler integration at page 25
+	/*//euler integration at page 25
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
 	for (int i = 0; i < m_pRigidBodySystem->getNumRigidBodies(); i++) {
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
-		m_pRigidBodySystem->setCentralOfMassVelocity(i, (temp[i].m_velocity + timeStep * temp[i].m_force / m_pRigidBodySystem->getTotalMass()));
-		m_pRigidBodySystem->setRotation(i, (temp[i].m_orientation + timeStep * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f)).unit());
-		m_pRigidBodySystem->setCentralOfMassVelocity(i, (temp[i].m_angularVelocity + timeStep * (temp[i].inertiaTensor).inverse().transformVector(temp[i].m_torque)));
-	}
-	*/
+		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / m_pRigidBodySystem->getTotalMass()));
+		setOrientationOf(i, (temp[i].m_orientation + timeStep * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f)).unit());
+		m_pRigidBodySystem->setAngularVelocity(i, (temp[i].m_angularVelocity + timeStep * (temp[i].inertiaTensor).inverse().transformVector(temp[i].m_torque)));
+	}*/
 }
 
 void RigidBodySystemSimulator::onClick(int x, int y)
@@ -110,14 +108,15 @@ int RigidBodySystemSimulator::getNumberOfRigidBodies()
 	return m_pRigidBodySystem->getNumRigidBodies();
 }
 
+//in world space
 Vec3 RigidBodySystemSimulator::getPositionOfRigidBody(int i)
 {
-	return m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter;
+	return m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(i).transformVector(m_pRigidBodySystem->getXiOf(i, 0) - m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter);
 }
 
 Vec3 RigidBodySystemSimulator::getLinearVelocityOfRigidBody(int i)
 {
-	return m_pRigidBodySystem->getRigidBodySystem()[i].m_velocity;
+	return m_pRigidBodySystem->getRigidBodySystem()[i].m_velocity + cross((m_pRigidBodySystem->getXiOf(i, 0) - m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter), m_pRigidBodySystem->getRigidBodySystem()[i].m_angularVelocity);
 }
 
 Vec3 RigidBodySystemSimulator::getAngularVelocityOfRigidBody(int i)

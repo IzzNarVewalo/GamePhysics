@@ -69,20 +69,26 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 	rigid.m_boxCenter = position;
 	rigid.m_boxSize = size;
 	rigid.m_imass = mass;
-	
+
 	//calculate inertia tensor in 3D
 	float Ixx = 1 / 12 * mass *(size.z * size.z + size.x * size.x);
 	float Iyy = 1 / 12 * mass *(size.y * size.y + size.x * size.x);
-	float Izz = 1 / 12 * mass *(size.y * size.y + size.z * size.z );
+	float Izz = 1 / 12 * mass *(size.y * size.y + size.z * size.z);
 	rigid.inertiaTensor = XMMatrixSet(Ixx, .0f, .0f, .0f, .0f, Iyy, .0f, .0f, .0f, .0f, Izz, .0f, .0f, .0f, .0f, 1.0f);
-	
+
 	//angular momantum L
 	rigid.m_angularMomentum = Vec3(.0f);
 
 	//angular velocity w
-	rigid.m_angularVelocity = Vec3(.0f);
+	rigid.m_angularVelocity = rigid.inertiaTensor.transformVector(rigid.m_angularMomentum);
 
-	m_rigidbodySystem.push_back(rigid);	
+	//xi und fi für torques setzen
+	TorqueChar c;
+	c.xi = Vec3(0.3f, 0.5f, 0.25f);
+	c.fi = Vec3(1.0f, 1.0f, .0f);
+	rigid.m_pointsTorque.push_back(c);
+
+	m_rigidbodySystem.push_back(rigid);
 	m_iNumRigidBodies++;
 
 	return m_iNumRigidBodies - 1;
@@ -91,7 +97,7 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 Mat4 RigidBodySystem::getTranslatMatOf(int i)
 {
 	Mat4 temp;
-	temp.initTranslation(m_rigidbodySystem[i].m_boxCenter.x,m_rigidbodySystem[i].m_boxCenter.y,m_rigidbodySystem[i].m_boxCenter.z);
+	temp.initTranslation(m_rigidbodySystem[i].m_boxCenter.x, m_rigidbodySystem[i].m_boxCenter.y, m_rigidbodySystem[i].m_boxCenter.z);
 	return temp;
 }
 
@@ -103,13 +109,28 @@ Mat4 RigidBodySystem::getRotMatOf(int i)
 Mat4 RigidBodySystem::getScaleMatOf(int i)
 {
 	Mat4 temp;
-	temp.initScaling(m_rigidbodySystem[i].m_boxSize.x,m_rigidbodySystem[i].m_boxSize.y,m_rigidbodySystem[i].m_boxSize.z);
+	temp.initScaling(m_rigidbodySystem[i].m_boxSize.x, m_rigidbodySystem[i].m_boxSize.y, m_rigidbodySystem[i].m_boxSize.z);
 	return temp;
 }
 
 Mat4 RigidBodySystem::calcTransformMatrixOf(int i)
 {
 	return getScaleMatOf(i) * getRotMatOf(i) * getTranslatMatOf(i);
+}
+
+Vec3 RigidBodySystem::getXiOf(int i, int j)
+{
+	return m_rigidbodySystem[i].m_pointsTorque[j].xi;
+}
+
+void RigidBodySystem::reset()
+{
+	while (!m_rigidbodySystem.empty()) {
+		m_rigidbodySystem.pop_back();
+	}
+
+	m_iNumRigidBodies = 0;
+	m_fTotalMass = 0;
 }
 
 
