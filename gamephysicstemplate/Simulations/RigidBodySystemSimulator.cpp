@@ -141,7 +141,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		//v linear velocity
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
 		//r see page 58
-		Quat orient = temp[i].m_orientation + (timeStep/2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
+		Quat orient = temp[i].m_orientation + (timeStep / 2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
 		setOrientationOf(i, (orient.unit()));
 		//L angular momentum page 56		
 		m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum + timeStep * temp[i].m_torque);
@@ -153,7 +153,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		//calculate the inverse inertia tensor
 		temp[i].inertiaTensor = m_pRigidBodySystem->getRotMatOf(i) * temp[i].inertiaTensor * tr;
 		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularMomentum));
-		
+
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";
 			cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(i) << ", " << getLinearVelocityOfRigidBody(i) << "\n";
@@ -203,11 +203,19 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 							//bouncies: c=1 fully elasitc c=0 plastic
 							float c = 0;
 							Vec3 J = -(1 + c) * deltaVel;
-								J.safeDivide(1/temp[j].m_imass + 1/temp[i].m_imass );
+							Vec3 nenner;
+							float massterm = 1.0f / temp[j].m_imass + 1.0f / temp[i].m_imass;
+							Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
+							Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+							nenner = massterm + ((a + b) * simpletest.normalWorld);
+							J.safeDivide(nenner);
+
 							//velocity update
-								setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld/temp[j].m_imass));
-								setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld/temp[i].m_imass));
-								
+							setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld / temp[j].m_imass));
+							setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld / temp[i].m_imass));
+
+							m_pRigidBodySystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
+							m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
 						}
 					}
 				}
