@@ -43,6 +43,7 @@ public:
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);	
 	Mat4 getScaleMatOf(int i);
+	Mat4 calcTransformMatrixOf(int i);
 		
 private:
 	//Attributes

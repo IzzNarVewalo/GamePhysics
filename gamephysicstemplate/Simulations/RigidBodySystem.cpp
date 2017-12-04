@@ -92,9 +92,6 @@ Mat4 RigidBodySystem::getTranslatMatOf(int i)
 {
 	Mat4 temp;
 	temp.initTranslation(m_rigidbodySystem[i].m_boxCenter.x,m_rigidbodySystem[i].m_boxCenter.y,m_rigidbodySystem[i].m_boxCenter.z);
-	if (m_rigidbodySystem[i].m_boxCenter.x == 0 && m_rigidbodySystem[i].m_boxCenter.y == 0 && m_rigidbodySystem[i].m_boxCenter.z == 0) {
-		temp.initTranslation(1, 1, 1);
-	}
 	return temp;
 }
 
@@ -108,6 +105,11 @@ Mat4 RigidBodySystem::getScaleMatOf(int i)
 	Mat4 temp;
 	temp.initScaling(m_rigidbodySystem[i].m_boxSize.x,m_rigidbodySystem[i].m_boxSize.y,m_rigidbodySystem[i].m_boxSize.z);
 	return temp;
+}
+
+Mat4 RigidBodySystem::calcTransformMatrixOf(int i)
+{
+	return getScaleMatOf(i) * getRotMatOf(i) * getTranslatMatOf(i);
 }
 
 
