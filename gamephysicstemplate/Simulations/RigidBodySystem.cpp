@@ -61,6 +61,11 @@ void RigidBodySystem::setAngularVelocity(int i, Vec3 w)
 	m_rigidbodySystem[i].m_angularVelocity = w;
 }
 
+void RigidBodySystem::setAngularMomentum(int i, Vec3 L)
+{
+	m_rigidbodySystem[i].m_angularMomentum = L;
+}
+
 int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
 	m_fTotalMass += mass;
@@ -71,10 +76,16 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 	rigid.m_imass = mass;
 
 	//calculate inertia tensor in 3D
-	float Ixx = 1 / 12 * mass *(size.z * size.z + size.x * size.x);
-	float Iyy = 1 / 12 * mass *(size.y * size.y + size.x * size.x);
-	float Izz = 1 / 12 * mass *(size.y * size.y + size.z * size.z);
-	rigid.inertiaTensor = XMMatrixSet(Ixx, .0f, .0f, .0f, .0f, Iyy, .0f, .0f, .0f, .0f, Izz, .0f, .0f, .0f, .0f, 1.0f);
+	float Ixx = mass *(size.z * size.z + size.x * size.x);
+	float Iyy = mass *(size.y * size.y + size.x * size.x);
+	float Izz = mass *(size.y * size.y + size.z * size.z);
+
+	float Ixy = mass *(-size.x*size.y);
+	float Ixz = mass *(-size.x*size.z); //z 2, 1 y, 3 x
+	float Izy = mass *(-size.y*size.z);
+	rigid.inertiaTensor = XMMatrixSet(Ixx, Izy, Ixy, .0f, Izy, Iyy, Ixz, .0f, Ixy, Ixz, Izz, .0f, .0f, .0f, .0f, 1.0f);
+	
+	rigid.inert = rigid.inertiaTensor.inverse();
 
 	//angular momantum L
 	rigid.m_angularMomentum = Vec3(.0f);
@@ -125,12 +136,16 @@ Vec3 RigidBodySystem::getXiOf(int i, int j)
 
 void RigidBodySystem::reset()
 {
-	while (!m_rigidbodySystem.empty()) {
+	for (int i = 0; i < m_iNumRigidBodies; i++) {
+		m_rigidbodySystem[i].m_boxCenter = Vec3(.0f, .0f, .0f);
+	}
+
+	/*while (!m_rigidbodySystem.empty()) {
 		m_rigidbodySystem.pop_back();
 	}
 
 	m_iNumRigidBodies = 0;
-	m_fTotalMass = 0;
+	m_fTotalMass = 0;*/
 }
 
 

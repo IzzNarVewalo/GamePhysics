@@ -16,7 +16,7 @@ struct Rigidbody{
 	Quat m_orientation;
 	int m_imass;
 	//hopefully inertia tensor
-	Mat4 inertiaTensor;	
+	Mat4 inertiaTensor, inert;	
 	//mass points producing toques -> m_torque is total torque
 	std::vector<TorqueChar> m_pointsTorque;
 };
@@ -38,6 +38,7 @@ public:
 	void setCentralOfMassVelocity(int i, Vec3 vel);
 	void setRotation(int i, Quat rot);
 	void setAngularVelocity(int i, Vec3 w);
+	void setAngularMomentum(int i, Vec3 L);
 	int addRigidBody(Vec3 position, Vec3 size, int mass);
 
 	Mat4 getTranslatMatOf(int i);

@@ -32,12 +32,14 @@ public:
 	void setOrientationOf(int i,Quat orientation);
 	void setVelocityOf(int i, Vec3 velocity);
 
+	int m_iTestCase;
+
 private:
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
 	RigidBodySystem * m_pRigidBodySystem; 
-	Vec3 m_externalForce;
-	int m_iTestCase;
+	Vec3 m_externalForce;	
+	boolean first, second;
 
 	// UI Attributes
 	Point2D m_mouse;
