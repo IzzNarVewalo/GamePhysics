@@ -39,7 +39,7 @@ public:
 	void setRotation(int i, Quat rot);
 	void setAngularVelocity(int i, Vec3 w);
 	void setAngularMomentum(int i, Vec3 L);
-	int addRigidBody(Vec3 position, Vec3 size, int mass);
+	int addRigidBody(Vec3 position, Vec3 size, int mass, int test);
 
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);	
@@ -47,8 +47,12 @@ public:
 	Mat4 calcTransformMatrixOf(int i);
 	Vec3 getXiOf(int i, int j);
 
+	//setze rigidbody auf pos (0,0,0)
 	void reset();
-	void reset2();
+	//setze alle werte auf (0,0,0) 
+	void reset2(int test);
+	//loesche die ganze szene
+	void reset3();
 		
 private:
 	//Attributes

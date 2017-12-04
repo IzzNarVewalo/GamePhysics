@@ -10,7 +10,7 @@ RigidBodySystemSimulator::RigidBodySystemSimulator()
 	first = second = true;
 
 	//fuer demo 1
-	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
+	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);	
 	setOrientationOf(0, Quat(0, 0, M_PI_2));
 
 	j = -1;
@@ -54,26 +54,48 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCont
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
 	int i = testCase;
+	TorqueChar c;
 	switch (i) {
 	case 0: cout << "demo 1!\n";
 		m_fextraForce = 1.0f;
 		m_iTestCase = 0;
 		if (i != j)
-			m_pRigidBodySystem->reset2();
+		{
+			m_pRigidBodySystem->reset3();
+			m_pRigidBodySystem->reset2(i);
+		}
 		first = true;
 		break;
 	case 1: cout << "demo2!\n";
 		m_iTestCase = 1;
 		if (i != j) {
-			m_pRigidBodySystem->reset2();
+			m_pRigidBodySystem->reset3();
+			m_pRigidBodySystem->reset2(i);
 			m_fextraForce = 1.0f;
 		}
 		break;
 
+	case 2: cout << "demo3!\n";
+		m_iTestCase = 2;
+		//loesche alles
+		if (i != j) {
+			m_pRigidBodySystem->reset3();
+		}
+		//erstelle neues setup mit zwei koerpern
+		addRigidBody(Vec3(0.5f, 0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.5f), 2);
+		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.5f), 3);
+		
+		//xi und fi für torques setzen		
+		//m_pRigidBodySystem->addTorque(0, Vec3(0.5f, 0.5f, 0.0f), Vec3(-1.0f, -1.0f, .0f));
+		//m_pRigidBodySystem->addTorque(1, Vec3(0.3f, 0.5f, 0.25f), Vec3(1.0f, 1.0f, .0f));
+		
+		setOrientationOf(0, Quat(0, 0, M_PI_2));
+		setOrientationOf(1, Quat(0, 0, 0));
+		break;
 	default: cout << "default\n";
 	}
-
-	m_pRigidBodySystem->reset();
+	if (m_iTestCase != 2)
+		m_pRigidBodySystem->reset();
 	j = i;
 }
 
@@ -118,7 +140,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		//v linear velocity
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
 		//r
-		Quat orient = temp[i].m_orientation + (timeStep) * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
+		Quat orient = temp[i].m_orientation + (timeStep)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
 		setOrientationOf(i, (orient.unit()));
 		//w angular velocity		
 		m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].m_torque);
@@ -130,15 +152,16 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		temp[i].inertiaTensor = m_pRigidBodySystem->getRotMatOf(i) * temp[i].inertiaTensor * tr;
 		m_pRigidBodySystem->setAngularMomentum(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularVelocity));
 		*/
-		//m_pRigidBodySystem->setAngularVelocity(i, temp[i].inert.transformVector(temp[i].m_angularMomentum));
+
+		//I do not know why this does not work, maybe the factor is just too big, so it rotates too fast
 		//m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].inert.transformVector(temp[i].m_torque));
-		
+
 
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";
-			cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(0) << ", " << getLinearVelocityOfRigidBody(0) << "\n";
+			cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(i) << ", " << getLinearVelocityOfRigidBody(i) << "\n";
 
-			Vec3 point = temp[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(0).transformVector(Vec3(0.3f, 0.5f, 0.25f));
+			Vec3 point = temp[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(i).transformVector(Vec3(0.3f, 0.5f, 0.25f));
 			Vec3 vel = temp[i].m_velocity + cross(temp[i].m_angularVelocity, Vec3(0.3f, 0.5f, 0.25f));
 
 			cout << "world space velocity of point (0.3 0.5 0.25) in world space (" << point << "): " << vel << "\n\n";
@@ -146,9 +169,9 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		}
 		else {
 			if (!first && second) {
-				cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(0) << ", " << getLinearVelocityOfRigidBody(0) << "\n";
+				cout << "linear and angular velocity of the body: " << getAngularVelocityOfRigidBody(i) << ", " << getLinearVelocityOfRigidBody(i) << "\n";
 
-				Vec3 point = temp[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(0).transformVector(Vec3(0.3f, 0.5f, 0.25f));
+				Vec3 point = temp[i].m_boxCenter + m_pRigidBodySystem->getRotMatOf(i).transformVector(Vec3(0.3f, 0.5f, 0.25f));
 				Vec3 vel = temp[i].m_velocity + cross(temp[i].m_angularVelocity, Vec3(0.3f, 0.5f, 0.25f));
 
 				cout << "world space velocity of point (0.3 0.5 0.25) in world space (" << point << "): " << vel << "\n";
@@ -202,7 +225,7 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
-	m_pRigidBodySystem->addRigidBody(position, size, mass);
+	m_pRigidBodySystem->addRigidBody(position, size, mass, m_iTestCase);
 }
 
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)

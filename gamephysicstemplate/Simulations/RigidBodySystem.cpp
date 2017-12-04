@@ -66,7 +66,7 @@ void RigidBodySystem::setAngularMomentum(int i, Vec3 L)
 	m_rigidbodySystem[i].m_angularMomentum = L;
 }
 
-int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
+int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass, int test)
 {
 	m_fTotalMass += mass;
 
@@ -84,20 +84,27 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 	float Ixz = mass *(-size.x*size.z); //z 2, 1 y, 3 x
 	float Izy = mass *(-size.y*size.z);
 	rigid.inertiaTensor = XMMatrixSet(Ixx, Izy, Ixy, .0f, Izy, Iyy, Ixz, .0f, Ixy, Ixz, Izz, .0f, .0f, .0f, .0f, 1.0f);
-	
+
 	rigid.inert = rigid.inertiaTensor.inverse();
 
 	//angular momantum L
 	rigid.m_angularMomentum = Vec3(.0f);
 
 	//angular velocity w
-	rigid.m_angularVelocity = rigid.inert.transformVector(rigid.m_angularMomentum);
+	rigid.m_angularVelocity = Vec3(.0f);
 
-	//xi und fi für torques setzen
 	TorqueChar c;
-	c.xi = Vec3(0.3f, 0.5f, 0.25f);
-	c.fi = Vec3(1.0f, 1.0f, .0f);
-	rigid.m_pointsTorque.push_back(c);
+	if (test != 2) {
+		c.xi = Vec3(0.3f, 0.5f, 0.25f);
+		c.fi = Vec3(1, 1, 0);
+		rigid.m_pointsTorque.push_back(c);
+	}
+	else {
+		int z = position.x > 0 ? (-1) : 1;
+		c.xi = z * Vec3(0.5f, 0.5f, 0.0f);
+		c.fi = z * Vec3(1.0f, 1.0f, .0f);
+		rigid.m_pointsTorque.push_back(c);
+	}
 
 	m_rigidbodySystem.push_back(rigid);
 	m_iNumRigidBodies++;
@@ -139,18 +146,13 @@ void RigidBodySystem::reset()
 	for (int i = 0; i < m_iNumRigidBodies; i++) {
 		m_rigidbodySystem[i].m_boxCenter = Vec3(.0f, .0f, .0f);
 	}
-
-	/*while (!m_rigidbodySystem.empty()) {
-		m_rigidbodySystem.pop_back();
-	}
-
-	m_iNumRigidBodies = 0;
-	m_fTotalMass = 0;*/
 }
 
 //setup for demo2. reset everything to 0
-void RigidBodySystem::reset2()
+void RigidBodySystem::reset2(int test)
 {
+	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2, test);
+
 	for (int i = 0; i < m_iNumRigidBodies; i++) {
 		m_rigidbodySystem[i].m_boxCenter = Vec3(.0f, .0f, .0f);
 		m_rigidbodySystem[i].m_velocity = Vec3(.0f, .0f, .0f);
@@ -160,6 +162,16 @@ void RigidBodySystem::reset2()
 		m_rigidbodySystem[i].m_force = Vec3(.0f, .0f, .0f);
 		m_rigidbodySystem[i].m_orientation = Quat(0, 0, M_PI_2);
 	}
+}
+
+void RigidBodySystem::reset3()
+{
+	while (!m_rigidbodySystem.empty()) {
+		m_rigidbodySystem.pop_back();
+	}
+
+	m_iNumRigidBodies = 0;
+	m_fTotalMass = 0;
 }
 
 
