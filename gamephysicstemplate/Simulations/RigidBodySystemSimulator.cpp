@@ -45,11 +45,15 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCont
 {
 	int numTemp = m_pRigidBodySystem->getNumRigidBodies();
 
-	DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 1), 0.2f, Vec3(0.5f, 0.5f, 0.5f));
+	if (m_iTestCase == 2)
+		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
+	else
+		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));
 
 	for (int i = 0; i < numTemp; i++) {
 		DUC->drawRigidBody(m_pRigidBodySystem->calcTransformMatrixOf(i));
 	}
+
 }
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
@@ -83,11 +87,28 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 			m_pRigidBodySystem->reset3();
 		}
 		//erstelle neues setup mit zwei koerpern
-		addRigidBody(Vec3(0.5f, 0.5f, 0.25f), Vec3(0.5f, 0.6f, 0.5f), 2);
+		addRigidBody(Vec3(0.5f, 0.5f, 0.25f), Vec3(0.5f, 0.6f, 0.5f), 1);
 		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.8f), 3);
 
 		setOrientationOf(0, Quat(M_PI_2, 0, M_PI_2));
 		setOrientationOf(1, Quat(M_PI_2, M_PI_4, 0));
+		break;
+	case 3: cout << "demo4!\n";
+		//loesche szene
+		if (i != j) {
+			m_pRigidBodySystem->reset3();
+		}
+		//erstelle neues setup mit vier rigidbodies
+		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.3f, 0.4f, 0.2f), 1);
+		addRigidBody(Vec3(-0.3f, -0.3f, -0.3f), Vec3(0.2f, 0.4f, 0.2f), 7);
+		addRigidBody(Vec3(0.2f, 0.1f, 0.25f), Vec3(0.1f, 0.3f, 0.2f), 4);
+		addRigidBody(Vec3(-0.4f, -0.4f, -0.2f), Vec3(0.2f, 0.2f, 0.2f), 3);
+
+		setOrientationOf(0, Quat(M_PI_2, 0, M_PI_2));
+		setOrientationOf(1, Quat(M_PI_2, M_PI_4, 0));
+		setOrientationOf(2, Quat(M_PI_4, 0, M_PI_2));
+		setOrientationOf(3, Quat(0, 0, 0));
+
 		break;
 	default: cout << "default\n";
 	}
@@ -134,6 +155,15 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 	for (int i = 0; i < num; i++) {
 		//x
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
+
+		/*//interaktion mit waenden
+		if ((temp[i].m_boxCenter.x < -0.5f || temp[i].m_boxCenter.x > 0.5f)) {
+			setVelocityOf(i, temp[i].m_velocity.x * (-1.0f));
+		}
+		if ((temp[i].m_boxCenter.y < -0.5f || temp[i].m_boxCenter.y > 0.5f)) {
+			setVelocityOf(i, temp[i].m_velocity.y * (-1.0f));
+		}*/
+
 		//v linear velocity
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
 		//r see page 58
@@ -176,49 +206,54 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 	//check for collisions
 	if (m_iTestCase >= 2) {
 
-		std::vector<Vec3> relVelColl;
-
 		for (int i = 0; i < num; i++) {
 			for (int j = 0; j < num, i != j; j++) {
-				if (temp[j].fixed) {
 
-					GamePhysics::Mat4 AM = m_pRigidBodySystem->calcTransformMatrixOf(j);
 
-					GamePhysics::Mat4 BM = m_pRigidBodySystem->calcTransformMatrixOf(i);
+				//TODO: KOS right!
+				GamePhysics::Mat4 AM = m_pRigidBodySystem->calcTransformMatrixOf(j);
 
-					CollisionInfo simpletest = checkCollisionSAT(AM, BM);
+				GamePhysics::Mat4 BM = m_pRigidBodySystem->calcTransformMatrixOf(i);
 
-					if (simpletest.isValid) {
-						std::printf("Collision\n");
-						Vec3 relVel = (temp[j].m_velocity - temp[i].m_velocity);
-						Vec3 deltaVel = relVel * simpletest.normalWorld;
-						float indicator = deltaVel.x;
-						if (indicator <= 0) {
-							//calculate impulse J
-							//they should stop flying into each other
-							//bouncies: c=1 fully elasitc c=0 plastic
-							float c = 0;
-							Vec3 J = -(1 + c) * deltaVel;
-							Vec3 nenner;
-							float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
-							Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
-							Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
-							nenner = massterm + ((a + b) * simpletest.normalWorld);
-							J.safeDivide(nenner);
+				CollisionInfo simpletest = checkCollisionSAT(AM, BM);
 
-							//velocity update
-							setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld / temp[j].m_imass));
-							setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld / temp[i].m_imass));
+				if (simpletest.isValid) {
+					std::printf("Collision\n");
+					//auf welcher flaeche welches koerpers steht die normale?
+					//wenn n positiv, dann steht es auf B, sonst auf A
 
-							m_pRigidBodySystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
-							m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
-						}
-					}
+					if (dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld) < 0)
+						return;
+										
+					Vec3 deltaVel = dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld);
+
+					//calculate impulse J
+					//they should stop flying into each other
+					//bouncies: c=1 fully elasitc c=0 plastic
+					float c = 0;
+					Vec3 J = -(1 + c) * deltaVel;
+					Vec3 nenner;
+					float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
+					Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+					Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
+					nenner = massterm + ((a + b) * simpletest.normalWorld);
+					J.safeDivide(nenner);
+
+					//velocity update
+					setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld / temp[j].m_imass));
+					setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld / temp[i].m_imass));
+
+					m_pRigidBodySystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
+					m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
+
+
 				}
+
 			}
 		}
 	}
 }
+
 
 void RigidBodySystemSimulator::onClick(int x, int y)
 {
