@@ -100,7 +100,7 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass, int test)
 		rigid.m_pointsTorque.push_back(c);
 	}
 	else {
-		int z = position.x < 0 ? 1 : 0;
+		int z = position.x < 0 ? 1 : -1;
 		c.xi = z * Vec3(0.5f, 0.5f, 0.0f);
 		c.fi = z * Vec3(1.0f, 1.0f, .0f);
 		rigid.m_pointsTorque.push_back(c);

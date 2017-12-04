@@ -83,12 +83,8 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 			m_pRigidBodySystem->reset3();
 		}
 		//erstelle neues setup mit zwei koerpern
-		addRigidBody(Vec3(0.5f, 0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.5f), 2);
+		addRigidBody(Vec3(0.5f, 0.5f, 0.25f), Vec3(0.5f, 0.6f, 0.5f), 2);
 		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.8f), 3);
-
-		//xi und fi für torques setzen		
-		//m_pRigidBodySystem->addTorque(0, Vec3(0.5f, 0.5f, 0.0f), Vec3(-1.0f, -1.0f, .0f));
-		//m_pRigidBodySystem->addTorque(1, Vec3(0.3f, 0.5f, 0.25f), Vec3(1.0f, 1.0f, .0f));
 
 		setOrientationOf(0, Quat(M_PI_2, 0, M_PI_2));
 		setOrientationOf(1, Quat(M_PI_2, M_PI_4, 0));
@@ -204,9 +200,9 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 							float c = 0;
 							Vec3 J = -(1 + c) * deltaVel;
 							Vec3 nenner;
-							float massterm = 1.0f / temp[j].m_imass + 1.0f / temp[i].m_imass;
-							Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
+							float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
 							Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+							Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
 							nenner = massterm + ((a + b) * simpletest.normalWorld);
 							J.safeDivide(nenner);
 
