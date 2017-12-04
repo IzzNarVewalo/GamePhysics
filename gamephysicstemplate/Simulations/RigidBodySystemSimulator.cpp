@@ -82,11 +82,16 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
-	Vec3 tempTotalTorque = Vec3(.0f);
-	Vec3 tempTotalForce = Vec3(.0f);
+	Vec3 tempTotalTorque;
+	Vec3 tempTotalForce;
+	int tempTorqueNum = 0;
+
 	for (int i = 0; i < m_pRigidBodySystem->getNumRigidBodies(); i++) {
 
-		int tempTorqueNum = temp[i].m_pointsTorque.size();
+		tempTotalTorque = Vec3(.0f);
+		tempTotalForce = Vec3(.0f);
+		tempTorqueNum = temp[i].m_pointsTorque.size();
+
 		for (int j = 0; j < tempTorqueNum; j++) {
 			Vec3 xi = (temp[i].m_pointsTorque[j].xi - temp[i].m_boxCenter);
 			tempTotalTorque += cross(xi, temp[i].m_pointsTorque[j].fi);
@@ -105,15 +110,29 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 {
 	//euler integration at page 25
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
-	for (int i = 0; i < m_pRigidBodySystem->getNumRigidBodies(); i++) {
+	int num = m_pRigidBodySystem->getNumRigidBodies();
+
+	for (int i = 0; i < num; i++) {
+		//x
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
-		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / m_pRigidBodySystem->getTotalMass()));
-		setOrientationOf(i, (temp[i].m_orientation + timeStep * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f)).unit());
+		//v linear velocity
+		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
+		//r
+		Quat orient = temp[i].m_orientation + (timeStep) * Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
+		setOrientationOf(i, (orient.unit()));
+		//w angular velocity		
+		m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].m_torque);
 
-		//Inverse von inertia tensor
+		//L angular momentum -> we do not need it, as we use the second equation
+		/*Mat4 tr = m_pRigidBodySystem->getRotMatOf(i);
+		tr.transpose();
+
+		temp[i].inertiaTensor = m_pRigidBodySystem->getRotMatOf(i) * temp[i].inertiaTensor * tr;
 		m_pRigidBodySystem->setAngularMomentum(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularVelocity));
-
-		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inert * temp[i].m_angularMomentum);
+		*/
+		//m_pRigidBodySystem->setAngularVelocity(i, temp[i].inert.transformVector(temp[i].m_angularMomentum));
+		//m_pRigidBodySystem->setAngularVelocity(i, temp[i].m_angularVelocity + timeStep * temp[i].inert.transformVector(temp[i].m_torque));
+		
 
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";

@@ -91,7 +91,7 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 	rigid.m_angularMomentum = Vec3(.0f);
 
 	//angular velocity w
-	rigid.m_angularVelocity = rigid.inertiaTensor.transformVector(rigid.m_angularMomentum);
+	rigid.m_angularVelocity = rigid.inert.transformVector(rigid.m_angularMomentum);
 
 	//xi und fi für torques setzen
 	TorqueChar c;
