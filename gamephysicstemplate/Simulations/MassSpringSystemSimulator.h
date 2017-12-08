@@ -13,6 +13,7 @@ class MassSpringSystemSimulator:public Simulator{
 public:
 	// Construtors
 	MassSpringSystemSimulator();
+
 	
 	// UI Functions
 	const char * getTestCasesStr();
