@@ -222,7 +222,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 					//auf welcher flaeche welches koerpers steht die normale?
 					//wenn n positiv, dann steht es auf B, sonst auf A
 
-					if (dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld) < 0)
+					if (dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld) >= 0)
 						return;
 										
 					Vec3 deltaVel = dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld);
