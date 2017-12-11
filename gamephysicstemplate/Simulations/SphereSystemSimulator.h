@@ -1,7 +1,7 @@
 #ifndef SPHSYSTEMSIMULATOR_h
 #define SPHSYSTEMSIMULATOR_h
 #include "Simulator.h"
-//#include "spheresystem.h", add your sphere system header file
+#include "SphereSystem.h", add your sphere system header file
 
 #define NAIVEACC 0
 #define GRIDACC 1
@@ -38,7 +38,7 @@ protected:
 	
 	int   m_iAccelerator; // switch between NAIVEACC and GRIDACC, (optionally, KDTREEACC, 2)
 	
-	//SphereSystem * m_pSphereSystem; // add your own sphere system member!
+	SphereSystem * m_pSphereSystem; // add your own sphere system member!
 	// for Demo 3 only:
 	// you will need multiple SphereSystem objects to do comparisons in Demo 3
 	// m_iAccelerator should be ignored.

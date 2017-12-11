@@ -239,6 +239,7 @@
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="RigidBodySystemSimulator.h" />
     <ClInclude Include="Simulator.h" />
+    <ClInclude Include="SphereSystem.h" />
     <ClInclude Include="SphereSystemSimulator.h" />
     <ClInclude Include="TemplateSimulator.h" />
     <ClInclude Include="util\FFmpeg.h" />
