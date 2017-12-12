@@ -1,10 +1,14 @@
 #ifndef SPHSYSTEMSIMULATOR_h
 #define SPHSYSTEMSIMULATOR_h
 #include "Simulator.h"
-#include "SphereSystem.h", add your sphere system header file
+#include "SphereSystem.h" // add your sphere system header file
 
 #define NAIVEACC 0
 #define GRIDACC 1
+
+//for integration
+#define MIDPOINT 0
+#define LEAPFROG 1
 
 class SphereSystemSimulator:public Simulator{
 public:
@@ -12,14 +16,22 @@ public:
 	SphereSystemSimulator();
 	// Functions
 	const char * getTestCasesStr();
+	const char * getIntegCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed);
+	void midpointStep(float timeStep); 
+	void leapfrogStep(float timeStep); 
 	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
+
+	void setMass(float mass);
+	void setDampingFactor(float damping);
+	void setRadius(float radius);
+	int getNumberOfSpheres();
 	
 protected:
 	// Attributes
@@ -27,6 +39,7 @@ protected:
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+	//mass, radius is identical
 	float m_fMass;
 	float m_fRadius;
 	float m_fForceScaling;
@@ -37,6 +50,7 @@ protected:
 	static std::function<float(float)> m_Kernels[5];
 	
 	int   m_iAccelerator; // switch between NAIVEACC and GRIDACC, (optionally, KDTREEACC, 2)
+	int   m_iIntegrator; //I added this, so you can switch between leap frog and midpoint (like in massspringsystem)
 	
 	SphereSystem * m_pSphereSystem; // add your own sphere system member!
 	// for Demo 3 only:

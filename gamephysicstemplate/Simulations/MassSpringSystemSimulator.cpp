@@ -167,7 +167,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 		for (int i = 0; i < m_inumSprings; i++) {
 			DUC->beginLine();
 			DUC->drawLine(m_points[m_springs[i].point1].position, Vec3(1, 1, 0), m_points[m_springs[i].point2].position, Vec3(1, 0, 1));
-			DUC->endLine();
+			DUC->endLine();			
 		}
 		break;
 	default:
