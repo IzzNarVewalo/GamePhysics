@@ -1,6 +1,7 @@
 #ifndef MASSSPRINGSYSTEMSIMULATOR_h
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include <vector>
 
 // Do Not Change
 #define EULER 0
@@ -8,6 +9,18 @@
 #define MIDPOINT 2
 // Do Not Change
 
+struct Spring {
+	int point1;
+	int point2;
+	float initialLength;
+};
+
+struct Point {
+	Vec3 position;
+	Vec3 velocity;
+	Vec3 force;
+	
+};
 
 class MassSpringSystemSimulator:public Simulator{
 public:
@@ -49,6 +62,8 @@ private:
 	float m_fStiffness;
 	float m_fDamping;
 	int m_iIntegrator;
+	std::vector<Point> pointList;
+	std::vector<Spring> springList;
 
 	// UI Attributes
 	Vec3 m_externalForce;
