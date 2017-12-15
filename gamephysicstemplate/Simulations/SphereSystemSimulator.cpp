@@ -70,7 +70,7 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 		//Spheres
 		for (int i = 0; i < m_iNumSpheres; i++) {
 
-			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 5.0f, Vec3(1, 0.5f, 0.65f));
+			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
 			DUC->drawSphere(tmp[i].position, Vec3(0.05f, 0.05f, 0.05f));
 			//TODO: draw grid 
 		}
@@ -116,7 +116,7 @@ void SphereSystemSimulator::notifyCaseChanged(int testCase)
 void SphereSystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	//gravity
-	externalForce = Vec3(0, 9.81f, 0);
+	externalForce = Vec3(0, -9.81f, 0);
 }
 
 //TODO: instead of spring forces use repulsion forces
@@ -203,10 +203,11 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 	}
 
 
-
 	switch (m_iTestCase) {
 	case 0:
-		!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
+		//!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
+
+		leapfrogStep(timeStep);
 		//TODO: check for collisions
 		a = 0;
 		for (int i = 0; i < m_iNumSpheres; i++) {

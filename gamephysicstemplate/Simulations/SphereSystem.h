@@ -26,4 +26,5 @@ private:
 	int ylevel = 5;
 	//skalierungsfaktor zum hinzufuegen von neuen kugeln (auf x-achse)
 	int xLevel = 5;
+	int zLevel = 5;
 };
