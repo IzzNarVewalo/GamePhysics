@@ -227,6 +227,7 @@
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
     <ClCompile Include="RigidBodySystem.cpp" />
     <ClCompile Include="RigidBodySystemSimulator.cpp" />
+    <ClCompile Include="SphereSystem.cpp" />
     <ClCompile Include="SphereSystemSimulator.cpp" />
     <ClCompile Include="TemplateSimulator.cpp" />
     <ClCompile Include="util\FFmpeg.cpp" />

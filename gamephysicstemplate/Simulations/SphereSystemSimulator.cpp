@@ -21,8 +21,10 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_fDamping = 5.0f;
 	m_pSphereSystem = new SphereSystem();
 	m_iKernel = 0;
-	m_iNumSpheres = 0.0f;
+	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 	m_iIntegrator = MIDPOINT; //0 midpoint, 1 leap frog
+
+
 }
 
 const char * SphereSystemSimulator::getTestCasesStr()
@@ -46,7 +48,7 @@ void SphereSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	case 0:
 		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
 		TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
-		TwAddVarRW(DUC->g_pTweakBar, "Number", TW_TYPE_INTEGCASE, &m_iNumSpheres, "min=10");
+		TwAddVarRW(DUC->g_pTweakBar, "Number", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
 		TwAddVarRW(DUC->g_pTweakBar, "Radius", TW_TYPE_FLOAT, &m_fRadius, "min=0.2");
 		break;
 	case 1:
@@ -142,18 +144,18 @@ void SphereSystemSimulator::midpointStep(float timeStep)
 
 	//acc at xTilde, time t+h/2
 	//compute internal force for all points in the system
-	for (int i = 0; i < m_iNumSpheres; i++) {
-		//current length of spring
-		m_springs[i].currentLength = norm(tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position);
+	//for (int i = 0; i < m_iNumSpheres; i++) {
+	//	//current length of spring
+	//	float dist = norm(tmp[i].position - tmp[m_springs[i].point2].position);
 
-		Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
+	//	Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
 
-		Vec3 force = tmp * (tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position) / (m_springs[i].currentLength);
-		tmp[m_springs[i].point1].force -= force;
+	//	Vec3 force = tmp * (tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position) / (m_springs[i].currentLength);
+	//	tmp[m_springs[i].point1].force -= force;
 
-		force = tmp * (tmp[m_springs[i].point2].position - tmp[m_springs[i].point1].position) / (m_springs[i].currentLength);
-		tmp[m_springs[i].point2].force -= force;
-	}
+	//	force = tmp * (tmp[m_springs[i].point2].position - tmp[m_springs[i].point1].position) / (m_springs[i].currentLength);
+	//	tmp[m_springs[i].point2].force -= force;
+	//}
 
 	//new velocity
 	for (int i = 0; i < m_iNumSpheres; i++)
@@ -186,42 +188,36 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 
 
 void SphereSystemSimulator::simulateTimestep(float timeStep)
-{
+{	
+	//wenn geadded, adden
+	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
+		m_pSphereSystem->addSphereToSystem();
+	}
+
 	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
+	int a = 0;
 
 	//if gravity on, accelerate in -y-direction
 	for (int i = 0; i < m_iNumSpheres; i++) {
-
 		tmp[i].force = externalForce;
 	}
 
-	//compute internal force for every point; acceleration depends only on elastic forces
-	for (int i = 0; i < m_iNumSpheres; i++) {
-		//current length of spring
-		m_springs[i].currentLength = norm(tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position);
 
-		Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
-
-		Vec3 force = tmp * (tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position) / (m_springs[i].currentLength);
-		tmp[m_springs[i].point1].force -= force;
-
-		force = tmp * (tmp[m_springs[i].point2].position - tmp[m_springs[i].point1].position) / (m_springs[i].currentLength);
-		tmp[m_springs[i].point2].force -= force;
-	}
 
 	switch (m_iTestCase) {
 	case 0:
 		!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
 		//TODO: check for collisions
-		int a = 0;
+		a = 0;
 		for (int i = 0; i < m_iNumSpheres; i++) {
-			for (int j = 0; j < m_iNumSpheres, i!=a; j++) {
-				Vec3 posDif = (tmp[i].position - tmp[a].position)*(tmp[i].position - tmp[a].position);
-				Vec3 radQuad = pow( (m_fRadius + m_fRadius) , 2);
-			
-				//collision
-				if (posDif > radQuad) {
+			for (int j = 0; j < m_iNumSpheres, i != a; j++) {
+				float posDif = norm(tmp[i].position - tmp[a].position);
+				float radQuad = m_fRadius + m_fRadius;
 
+				//collision, naiv approach
+				//compute force for every sphere according to f(d)
+				if (posDif > radQuad) {
+					tmp[j].force = m_iKernel * (1 - posDif / radQuad);
 				}
 			}
 			a++;
