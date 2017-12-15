@@ -16,7 +16,7 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_iTestCase = 0; //fangen mit demo1 an
 	m_iAccelerator = NAIVEACC;
 	m_fMass = 10.0f;
-	m_fRadius = 0.2f;
+	m_fRadius = 0.05f;
 	m_fForceScaling = 0.0f;
 	m_fDamping = 5.0f;
 	m_pSphereSystem = new SphereSystem();
@@ -49,7 +49,7 @@ void SphereSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
 		TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
 		TwAddVarRW(DUC->g_pTweakBar, "Number", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
-		TwAddVarRW(DUC->g_pTweakBar, "Radius", TW_TYPE_FLOAT, &m_fRadius, "min=0.2");
+		TwAddVarRW(DUC->g_pTweakBar, "Radius", TW_TYPE_FLOAT, &m_fRadius, "min=0.04, step=0.001");
 		break;
 	case 1:
 		break;
@@ -71,7 +71,7 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 		for (int i = 0; i < m_iNumSpheres; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
-			DUC->drawSphere(tmp[i].position, Vec3(0.05f, 0.05f, 0.05f));
+			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
 			//TODO: draw grid 
 		}
 		break;
@@ -179,10 +179,18 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 
 	for (int i = 0; i < m_iNumSpheres; i++) {
 
-		tmp[i].velocity = tmp[i].velocity + timeStep * tmp[i].force / m_fMass;
+		setVelocity(i, tmp[i].velocity + timeStep * tmp[i].force / m_fMass);
+		setPosition(i, tmp[i].position + timeStep * tmp[i].velocity);
 
-		tmp[i].position = tmp[i].position + timeStep * tmp[i].velocity;
+		Vec3 veltmp = m_pSphereSystem->getVelocity(i);
 
+		//bounce when hit the floor & velocity damping
+		if (m_pSphereSystem->getPosition(i).y <= -0.5f || m_pSphereSystem->getPosition(i).y >= 0.5f)
+			m_pSphereSystem->setVelocityY(i, veltmp.y *= (-0.99f));
+
+		//bounce when hit the walls & velocity damping
+		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f))
+			m_pSphereSystem->setVelocityX(i, veltmp.x *= (-0.90f));
 	}
 }
 

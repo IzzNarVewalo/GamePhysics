@@ -31,6 +31,12 @@ public:
 	void setMass(float mass);
 	void setDampingFactor(float damping);
 	void setRadius(float radius);
+	void setVelocity(int i, Vec3 vel) {
+		m_pSphereSystem->setVelocity(i, vel);
+	}
+	void setPosition(int i, Vec3 pos) {
+		m_pSphereSystem->setPosition(i, pos);
+	}
 	int getNumberOfSpheres();
 	
 protected:
