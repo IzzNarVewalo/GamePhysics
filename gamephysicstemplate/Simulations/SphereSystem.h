@@ -31,6 +31,10 @@ public:
 		spheres[i].velocity.y = vely;
 	}
 
+	void setForce(int i, Vec3 force) {
+		spheres[i].force = force;
+	}
+
 	Vec3 getVelocity(int i) {
 		return spheres[i].velocity;
 	}

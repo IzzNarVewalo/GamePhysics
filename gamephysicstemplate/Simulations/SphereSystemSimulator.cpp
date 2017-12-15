@@ -202,12 +202,13 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		m_pSphereSystem->addSphereToSystem();
 	}
 
+	//only to read values from
 	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
 	int a = 0;
 
 	//if gravity on, accelerate in -y-direction
 	for (int i = 0; i < m_iNumSpheres; i++) {
-		tmp[i].force = externalForce;
+		m_pSphereSystem->setForce(i, externalForce);		
 	}
 
 
@@ -219,14 +220,14 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		//TODO: check for collisions
 		a = 0;
 		for (int i = 0; i < m_iNumSpheres; i++) {
-			for (int j = 0; j < m_iNumSpheres, i != a; j++) {
-				float posDif = norm(tmp[i].position - tmp[a].position);
+			for (int j = 0; j < m_iNumSpheres; j++) {
+				float posDif = norm(tmp[i].position - tmp[j].position);
 				float radQuad = m_fRadius + m_fRadius;
 
 				//collision, naiv approach
 				//compute force for every sphere according to f(d)
-				if (posDif > radQuad) {
-					tmp[j].force = m_iKernel * (1 - posDif / radQuad);
+				if (posDif <= radQuad) {
+					m_pSphereSystem->setForce(i, m_Kernels[m_iKernel] * (1 - posDif / radQuad));
 				}
 			}
 			a++;
