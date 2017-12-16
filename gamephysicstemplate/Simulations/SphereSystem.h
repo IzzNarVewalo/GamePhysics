@@ -30,6 +30,9 @@ public:
 	void setVelocityY(int i, float vely) {
 		spheres[i].velocity.y = vely;
 	}
+	void setVelocityZ(int i, float velz) {
+		spheres[i].velocity.z = velz;
+	}
 
 	void setForce(int i, Vec3 force) {
 		spheres[i].force = force;
@@ -41,6 +44,10 @@ public:
 
 	Vec3 getPosition(int i) {
 		return spheres[i].position;
+	}
+
+	Vec3 getForceOf(int i) {
+		return spheres[i].force;
 	}
 
 private:

@@ -12,7 +12,7 @@ std::function<float(float)> SphereSystemSimulator::m_Kernels[5] = {
 
 SphereSystemSimulator::SphereSystemSimulator()
 {
-	externalForce = Vec3();
+	externalForce = Vec3(0, -9.81f, 0);
 	m_iTestCase = 0; //fangen mit demo1 an
 	m_iAccelerator = NAIVEACC;
 	m_fMass = 10.0f;
@@ -20,11 +20,14 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_fForceScaling = 0.0f;
 	m_fDamping = 5.0f;
 	m_pSphereSystem = new SphereSystem();
-	m_iKernel = 0;
+	m_iKernel = 1;
 	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 	m_iIntegrator = MIDPOINT; //0 midpoint, 1 leap frog
-
-
+	
+	//if gravity on, accelerate in -y-direction
+	for (int i = 0; i < m_iNumSpheres; i++) {
+		m_pSphereSystem->setForce(i, externalForce);
+	}
 }
 
 const char * SphereSystemSimulator::getTestCasesStr()
@@ -116,7 +119,7 @@ void SphereSystemSimulator::notifyCaseChanged(int testCase)
 void SphereSystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	//gravity
-	externalForce = Vec3(0, -9.81f, 0);
+	//externalForce = Vec3(0, -9.81f, 0);
 }
 
 //TODO: instead of spring forces use repulsion forces
@@ -175,12 +178,10 @@ void SphereSystemSimulator::midpointStep(float timeStep)
 
 void SphereSystemSimulator::leapfrogStep(float timeStep)
 {
-	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
-
 	for (int i = 0; i < m_iNumSpheres; i++) {
 
-		setVelocity(i, tmp[i].velocity + timeStep * tmp[i].force / m_fMass);
-		setPosition(i, tmp[i].position + timeStep * tmp[i].velocity);
+		setVelocity(i, m_pSphereSystem->getVelocity(i) + timeStep * m_pSphereSystem->getForceOf(i) / m_fMass);
+		setPosition(i, m_pSphereSystem->getPosition(i) + timeStep * m_pSphereSystem->getVelocity(i));
 
 		Vec3 veltmp = m_pSphereSystem->getVelocity(i);
 
@@ -191,6 +192,9 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 		//bounce when hit the walls & velocity damping
 		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f))
 			m_pSphereSystem->setVelocityX(i, veltmp.x *= (-0.90f));
+
+		if ((m_pSphereSystem->getPosition(i).z <= -0.5f || m_pSphereSystem->getPosition(i).z >= 0.5f))
+			m_pSphereSystem->setVelocityZ(i, veltmp.z *= (-0.90f));
 	}
 }
 
@@ -201,36 +205,27 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
 	}
-
-	//only to read values from
-	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
-	int a = 0;
-
-	//if gravity on, accelerate in -y-direction
-	for (int i = 0; i < m_iNumSpheres; i++) {
-		m_pSphereSystem->setForce(i, externalForce);		
-	}
-
-
+		
 	switch (m_iTestCase) {
 	case 0:
 		//!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
 
 		leapfrogStep(timeStep);
 		//TODO: check for collisions
-		a = 0;
+	
 		for (int i = 0; i < m_iNumSpheres; i++) {
-			for (int j = 0; j < m_iNumSpheres; j++) {
-				float posDif = norm(tmp[i].position - tmp[j].position);
+			for (int j = 0; j < m_iNumSpheres, i!=j; j++) {
+				float posDif = norm(m_pSphereSystem->getPosition(i) - m_pSphereSystem->getPosition(j));
 				float radQuad = m_fRadius + m_fRadius;
 
 				//collision, naiv approach
 				//compute force for every sphere according to f(d)
 				if (posDif <= radQuad) {
-					m_pSphereSystem->setForce(i, m_Kernels[m_iKernel] * (1 - posDif / radQuad));
+					m_pSphereSystem->setForce(i, (-1.0f) *m_Kernels[m_iKernel](3.0f) * (1 - posDif / radQuad));
+					m_pSphereSystem->setForce(j,  m_Kernels[m_iKernel](3.0f) * (1 - posDif / radQuad));
 				}
 			}
-			a++;
+		
 		}
 
 		break;
