@@ -122,60 +122,6 @@ void SphereSystemSimulator::externalForcesCalculations(float timeElapsed)
 	//externalForce = Vec3(0, -9.81f, 0);
 }
 
-//TODO: instead of spring forces use repulsion forces
-void SphereSystemSimulator::midpointStep(float timeStep)
-{
-	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
-
-	for (int i = 0; i < m_iNumSpheres; i++) {
-
-		//xTilde
-		tmp[i].position = tmp[i].position + (timeStep / 2) * tmp[i].velocity;
-
-		//vel at xTilde
-		tmp[i].velocity = tmp[i].velocity + (timeStep / 2) * tmp[i].force / m_fMass;
-
-		//new position
-		tmp[i].position = tmp[i].position + timeStep * tmp[i].velocity;
-
-		//clear forces
-		for (int i = 0; i < m_iNumSpheres; i++) {
-			tmp[i].force = externalForce;
-		}
-
-	}
-
-	//acc at xTilde, time t+h/2
-	//compute internal force for all points in the system
-	//for (int i = 0; i < m_iNumSpheres; i++) {
-	//	//current length of spring
-	//	float dist = norm(tmp[i].position - tmp[m_springs[i].point2].position);
-
-	//	Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
-
-	//	Vec3 force = tmp * (tmp[m_springs[i].point1].position - tmp[m_springs[i].point2].position) / (m_springs[i].currentLength);
-	//	tmp[m_springs[i].point1].force -= force;
-
-	//	force = tmp * (tmp[m_springs[i].point2].position - tmp[m_springs[i].point1].position) / (m_springs[i].currentLength);
-	//	tmp[m_springs[i].point2].force -= force;
-	//}
-
-	//new velocity
-	for (int i = 0; i < m_iNumSpheres; i++)
-	{
-		//bounding with floor
-		if (tmp[i].position.y <= -0.5f)
-			tmp[i].velocity.y *= (-0.99f);
-		//bounding with walls
-		if ((tmp[i].position.x <= -0.5f || tmp[i].position.x > 0.5f))
-			tmp[i].velocity.x *= (-0.90f);
-		//divide the force by mass of the point to get the acceleration 
-		tmp[i].velocity = tmp[i].velocity + timeStep * tmp[i].force / m_fMass;
-
-	}
-
-}
-
 void SphereSystemSimulator::leapfrogStep(float timeStep)
 {
 	for (int i = 0; i < m_iNumSpheres; i++) {
@@ -211,8 +157,7 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		//!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
 
 		leapfrogStep(timeStep);
-		//TODO: check for collisions
-	
+		//TODO: check for collisions	
 		for (int i = 0; i < m_iNumSpheres; i++) {
 			for (int j = 0; j < m_iNumSpheres, i!=j; j++) {
 				float posDif = norm(m_pSphereSystem->getPosition(i) - m_pSphereSystem->getPosition(j));
@@ -221,8 +166,8 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 				//collision, naiv approach
 				//compute force for every sphere according to f(d)
 				if (posDif <= radQuad) {
-					m_pSphereSystem->setForce(i, (-1.0f) *m_Kernels[m_iKernel](3.0f) * (1 - posDif / radQuad));
-					m_pSphereSystem->setForce(j,  m_Kernels[m_iKernel](3.0f) * (1 - posDif / radQuad));
+					m_pSphereSystem->setForce(i, m_pSphereSystem->getForceOf(i) * m_Kernels[m_iKernel](2.0f) * (1 - posDif / radQuad));
+					m_pSphereSystem->setForce(j, m_pSphereSystem->getForceOf(j) * m_Kernels[m_iKernel](2.0f) * (1 - posDif / radQuad));
 				}
 			}
 		

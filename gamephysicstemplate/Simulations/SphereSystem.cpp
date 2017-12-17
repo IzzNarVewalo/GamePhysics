@@ -3,12 +3,12 @@
 SphereSystem::SphereSystem()
 {
 	Sphere s1;
-	s1.position = Vec3(0.0f);
+	s1.position = Vec3(-0.5f, -0.5f, 0.0f);
 	s1.velocity = Vec3(1.0f, 1.0f, 0.0f);
 	s1.force = Vec3(0.0f);
 	spheres.push_back(s1);
 	Sphere s2;
-	s2.position = Vec3(0.0f, -0.5f, 0.0f);
+	s2.position = Vec3(0.0f, 0.0f, 0.0f);
 	s2.velocity = Vec3(0.0f, 0.0f, 0.0f);
 	s2.force = Vec3(0.0f);
 	spheres.push_back(s2);
