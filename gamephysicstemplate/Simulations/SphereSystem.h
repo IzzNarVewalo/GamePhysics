@@ -58,4 +58,8 @@ private:
 	//skalierungsfaktor zum hinzufuegen von neuen kugeln (auf x-achse)
 	int xLevel = 5;
 	int zLevel = 5;
+
+	//uniform grid
+	int m = 9; //number of cells in a grid
+	Sphere* uniformGrif = new Sphere[10 * m];
 };

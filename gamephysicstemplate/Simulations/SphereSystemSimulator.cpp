@@ -23,7 +23,7 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_iKernel = 1;
 	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 	m_iIntegrator = MIDPOINT; //0 midpoint, 1 leap frog
-	
+
 	//if gravity on, accelerate in -y-direction
 	for (int i = 0; i < m_iNumSpheres; i++) {
 		m_pSphereSystem->setForce(i, externalForce);
@@ -45,16 +45,19 @@ void SphereSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	this->DUC = DUC;
 
 	DUC->update(0.1f);
-	TwType TW_TYPE_INTEGCASE = TwDefineEnumFromString("Integration", getIntegCasesStr());
+
+	TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=0.1 step=0.1");
+	TwAddVarRW(DUC->g_pTweakBar, "Radius", TW_TYPE_FLOAT, &m_fRadius, "min=0.04, step=0.001");
+	TwAddVarRW(DUC->g_pTweakBar, "Number", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
+
 	switch (m_iTestCase)
 	{
 	case 0:
-		TwAddVarRW(DUC->g_pTweakBar, "Integration", TW_TYPE_INTEGCASE, &m_iIntegrator, "");
-		TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=5");
-		TwAddVarRW(DUC->g_pTweakBar, "Number", TW_TYPE_INT32, &m_iNumSpheres, "min=1");
-		TwAddVarRW(DUC->g_pTweakBar, "Radius", TW_TYPE_FLOAT, &m_fRadius, "min=0.04, step=0.001");
 		break;
-	case 1:
+	case 1:	
+		TwAddVarRW(DUC->g_pTweakBar, "Damping", TW_TYPE_FLOAT, &m_fDamping, "min=0.1 step=0.01");
+		TwAddVarRW(DUC->g_pTweakBar, "Kernel", TW_TYPE_INT32, &m_iKernel, "min=0");
+		TwAddVarRW(DUC->g_pTweakBar, "Draw Grid", TW_TYPE_BOOL32, &gridDrawn, "");
 		break;
 	case 2:
 		break;
@@ -68,14 +71,20 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 
 	switch (m_iTestCase) {
 	case 1:
-		break;
-	case 0:
 		//Spheres
 		for (int i = 0; i < m_iNumSpheres; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
 			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
 			//TODO: draw grid 
+		}
+		break;
+	case 0:
+		//Spheres
+		for (int i = 0; i < m_iNumSpheres; i++) {
+
+			DUC->setUpLighting(Vec3(), Vec3(0, 1, 0), 2000.0f, Vec3(0, 1.0f, 0.0f));
+			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
 		}
 		break;
 	case 2:
@@ -146,20 +155,18 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 
 
 void SphereSystemSimulator::simulateTimestep(float timeStep)
-{	
+{
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
 	}
-		
+
 	switch (m_iTestCase) {
 	case 0:
-		//!m_iIntegrator ? midpointStep(timeStep) : leapfrogStep(timeStep);
-
 		leapfrogStep(timeStep);
-		//TODO: check for collisions	
+
 		for (int i = 0; i < m_iNumSpheres; i++) {
-			for (int j = 0; j < m_iNumSpheres, i!=j; j++) {
+			for (int j = 0; j < m_iNumSpheres, i != j; j++) {
 				float posDif = norm(m_pSphereSystem->getPosition(i) - m_pSphereSystem->getPosition(j));
 				float radQuad = m_fRadius + m_fRadius;
 
@@ -170,7 +177,7 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 					m_pSphereSystem->setForce(j, m_pSphereSystem->getForceOf(j) * m_Kernels[m_iKernel](2.0f) * (1 - posDif / radQuad));
 				}
 			}
-		
+
 		}
 
 		break;

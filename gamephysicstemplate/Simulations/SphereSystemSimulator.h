@@ -59,6 +59,8 @@ protected:
 	int   m_iIntegrator; //I added this, so you can switch between leap frog and midpoint (like in massspringsystem)
 	
 	SphereSystem * m_pSphereSystem; // add your own sphere system member!
+	boolean gridDrawn = true;
+
 	// for Demo 3 only:
 	// you will need multiple SphereSystem objects to do comparisons in Demo 3
 	// m_iAccelerator should be ignored.
