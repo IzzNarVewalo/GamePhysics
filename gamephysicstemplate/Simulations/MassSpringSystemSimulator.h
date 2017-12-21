@@ -40,6 +40,8 @@ public:
 	void onMouse(int x, int y);
 
 	// Specific Functions
+	void integrateEuler(float timeStep);
+	void integrateMidpoint(float timeStep);
 	void setMass(float mass);
 	void setStiffness(float stiffness);
 	void setDampingFactor(float damping);

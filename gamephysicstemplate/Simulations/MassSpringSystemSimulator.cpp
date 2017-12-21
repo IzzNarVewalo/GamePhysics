@@ -16,13 +16,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 
-void integrateEuler() {
 
-}
-
-void integrateMidpoint() {
-
-}
 
 const char * MassSpringSystemSimulator::getTestCasesStr()
 {
@@ -87,6 +81,16 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
+	switch (m_iIntegrator) {
+	case EULER:
+		integrateEuler(timeStep);
+		break;
+	case MIDPOINT:
+		integrateMidpoint(timeStep);
+		break;
+	default:
+		break;
+	}
 }
 
 void MassSpringSystemSimulator::onClick(int x, int y)
@@ -101,6 +105,29 @@ void MassSpringSystemSimulator::onMouse(int x, int y)
 	m_oldtrackmouse.y = y;
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
+}
+
+void MassSpringSystemSimulator::integrateEuler(float timeStep)
+{
+	Point oldPoint;
+
+	for (int i = 0; i < pointList.size(); i++) {
+		oldPoint = pointList[i];
+		//y1 = y0 + hf(x0, y0)
+		pointList[i].position = oldPoint.position + timeStep * oldPoint.velocity;
+	}
+
+
+}
+
+void MassSpringSystemSimulator::integrateMidpoint(float timeStep)
+{
+	Point oldPoint;
+
+	for (int i = 0; i < pointList.size(); i++) {
+		oldPoint = pointList[i];
+		//Midpoint
+	}
 }
 
 void MassSpringSystemSimulator::setMass(float mass)
