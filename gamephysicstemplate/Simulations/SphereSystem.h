@@ -21,6 +21,19 @@ public:
 	void setPosition(int i, Vec3 pos) {
 		spheres[i].position = pos;
 	}
+
+	void setPositionX(int i, float x) {
+		spheres[i].position.x = x;
+	}
+
+	void setPositionY(int i, float x) {
+		spheres[i].position.y = x;
+	}
+
+	void setPositionZ(int i, float x) {
+		spheres[i].position.z = x;
+	}
+
 	void setVelocity(int i, Vec3 vel) {
 		spheres[i].velocity = vel;
 	}
@@ -48,6 +61,10 @@ public:
 
 	Vec3 getForceOf(int i) {
 		return spheres[i].force;
+	}
+
+	void popBack() {
+		spheres.pop_back();
 	}
 
 private:

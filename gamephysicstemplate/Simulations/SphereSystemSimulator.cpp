@@ -156,7 +156,7 @@ void SphereSystemSimulator::notifyCaseChanged(int testCase)
 		break;
 	case 1:
 		cout << "Demo 2 !\n";
-
+		setupdemo2();
 		break;
 	case 2:
 		cout << "Demo 3 !\n";
@@ -184,29 +184,46 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 		Vec3 veltmp = m_pSphereSystem->getVelocity(i);
 
 		//bounce when hit the floor & velocity damping
-		if (m_pSphereSystem->getPosition(i).y <= -0.5f || m_pSphereSystem->getPosition(i).y >= 0.5f)
+		if (m_pSphereSystem->getPosition(i).y <= -0.5f || m_pSphereSystem->getPosition(i).y >= 0.5f) {
 			m_pSphereSystem->setVelocityY(i, veltmp.y *= (-0.99f));
+			if (m_pSphereSystem->getPosition(i).y <= -0.5f)
+				m_pSphereSystem->setPositionY(i, -0.48f);
+			else
+				m_pSphereSystem->setPositionY(i, 0.48f);
+		}
 
 		//bounce when hit the walls & velocity damping
-		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f))
+		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f)) {
 			m_pSphereSystem->setVelocityX(i, veltmp.x *= (-0.90f));
+			if (m_pSphereSystem->getPosition(i).x <= -0.5f)
+				m_pSphereSystem->setPositionX(i, -0.48f);
+			else
+				m_pSphereSystem->setPositionX(i, 0.48f);
+		}
 
-		if ((m_pSphereSystem->getPosition(i).z <= -0.5f || m_pSphereSystem->getPosition(i).z >= 0.5f))
+		if ((m_pSphereSystem->getPosition(i).z <= -0.5f || m_pSphereSystem->getPosition(i).z >= 0.5f)) {
 			m_pSphereSystem->setVelocityZ(i, veltmp.z *= (-0.90f));
+			if (m_pSphereSystem->getPosition(i).z <= -0.5f)
+				m_pSphereSystem->setPositionZ(i, -0.48f);
+			else
+				m_pSphereSystem->setPositionZ(i, 0.48f);
+		}
 	}
 }
 
 
 void SphereSystemSimulator::simulateTimestep(float timeStep)
 {
+	int lambda = 1;
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
 	}
 
+	leapfrogStep(timeStep);
+
 	switch (m_iTestCase) {
 	case 0:
-		leapfrogStep(timeStep);
 
 		for (int i = 0; i < m_iNumSpheres; i++) {
 			for (int j = 0; j < m_iNumSpheres, i != j; j++) {
@@ -216,8 +233,13 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 				//collision, naiv approach
 				//compute force for every sphere according to f(d)
 				if (posDif <= radQuad) {
-					m_pSphereSystem->setForce(i, m_pSphereSystem->getForceOf(i) * m_Kernels[m_iKernel](2.0f) * (1 - posDif / radQuad));
-					m_pSphereSystem->setForce(j, m_pSphereSystem->getForceOf(j) * m_Kernels[m_iKernel](2.0f) * (1 - posDif / radQuad));
+
+					m_pSphereSystem->setForce(i, m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda);
+					m_pSphereSystem->setForce(j, m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda);
+
+					m_pSphereSystem->setVelocity(i, m_pSphereSystem->getVelocity(i) + m_pSphereSystem->getForceOf(i) / m_fMass * timeStep);
+					m_pSphereSystem->setVelocity(j, m_pSphereSystem->getVelocity(j) + m_pSphereSystem->getForceOf(j) / m_fMass * timeStep);
+
 				}
 			}
 
@@ -226,6 +248,8 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		break;
 
 	case 2:
+		//hashe spheres in grid rein
+
 
 		break;
 	case 3:
@@ -234,6 +258,21 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 	default:
 		break;
 	}
+}
+
+void SphereSystemSimulator::setupdemo2()
+{
+	//clear scene
+	while (!m_pSphereSystem->getSpheres().empty()) {
+		m_pSphereSystem->popBack();
+	}
+
+	int i = 1;
+	while (i != 100) {
+		m_pSphereSystem->addSphereToSystem(); i++;
+	}
+
+	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 }
 
 void SphereSystemSimulator::onClick(int x, int y)

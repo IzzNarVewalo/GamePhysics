@@ -23,7 +23,7 @@ std::vector<Sphere> SphereSystem::getSpheres()
 void SphereSystem::addSphereToSystem()
 {
 	Sphere newSphere;
-	newSphere.position = Vec3(0.1f * xLevel, 0.1f * ylevel, 0.1f * zLevel);
+	newSphere.position = Vec3(0.1f * xLevel + 0.05f, 0.1f * ylevel + 0.05f, 0.1f * zLevel + 0.05f);
 	newSphere.velocity = Vec3();
 	newSphere.force = Vec3();
 	xLevel--;

@@ -21,10 +21,10 @@ public:
 	void reset();
 	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
-	void externalForcesCalculations(float timeElapsed);
-	void midpointStep(float timeStep); 
+	void externalForcesCalculations(float timeElapsed); 
 	void leapfrogStep(float timeStep); 
 	void simulateTimestep(float timeStep);
+	void setupdemo2();
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
