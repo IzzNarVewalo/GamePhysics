@@ -60,6 +60,6 @@ private:
 	int zLevel = 5;
 
 	//uniform grid
-	int m = 9; //number of cells in a grid
+	int m = 10; //number of cells in a grid
 	Sphere* uniformGrif = new Sphere[10 * m];
 };

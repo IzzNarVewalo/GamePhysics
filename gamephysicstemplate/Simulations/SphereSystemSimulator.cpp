@@ -10,6 +10,10 @@ std::function<float(float)> SphereSystemSimulator::m_Kernels[5] = {
 
 // SphereSystemSimulator member functions
 
+float x = -0.5f;
+float y = -0.5f;
+float z = -0.5f;
+
 SphereSystemSimulator::SphereSystemSimulator()
 {
 	externalForce = Vec3(0, -9.81f, 0);
@@ -54,7 +58,7 @@ void SphereSystemSimulator::initUI(DrawingUtilitiesClass * DUC)
 	{
 	case 0:
 		break;
-	case 1:	
+	case 1:
 		TwAddVarRW(DUC->g_pTweakBar, "Damping", TW_TYPE_FLOAT, &m_fDamping, "min=0.1 step=0.01");
 		TwAddVarRW(DUC->g_pTweakBar, "Kernel", TW_TYPE_INT32, &m_iKernel, "min=0");
 		TwAddVarRW(DUC->g_pTweakBar, "Draw Grid", TW_TYPE_BOOL32, &gridDrawn, "");
@@ -69,14 +73,53 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 {
 	std::vector<Sphere> tmp = m_pSphereSystem->getSpheres();
 
+
 	switch (m_iTestCase) {
 	case 1:
+		if (!gridDrawn) { break; }
+		else {
+			//einmal waagrecht und einmal senkrecht			
+				//2D struktur
+			for (int j = 0; j < 11; j++) {
+				for (int a = 0; a < 11; a++) {
+					//Abstand zwischen zellen: 0.1
+					//insgesamt 10 zellen pro reihe
+
+					Vec3 posbegin = Vec3(x, y, z * (-1));
+					DUC->beginLine();
+					DUC->drawLine(posbegin, Vec3(0, 0, 1), Vec3((-1) * x, y, z * (-1)), Vec3(1, 0, 0));
+					DUC->endLine();
+					y += 0.1f;
+				}
+				z += 0.1f;
+				y = -0.5f;
+			}
+			x = y = z = -0.5f;
+
+			for (int j = 0; j < 11; j++) {
+				for (int a = 0; a < 11; a++) {
+					//Abstand zwischen zellen: 0.1
+					//insgesamt 10 zellen pro reihe
+
+					Vec3 posbegin = Vec3(x, y, z);
+					DUC->beginLine();
+					DUC->drawLine(posbegin, Vec3(0, 0, 1), Vec3(x, y, (-1) * z), Vec3(1, 0, 0));
+					DUC->endLine();
+					y += 0.1f;
+				}
+				x += 0.1f;
+				y = -0.5f;
+			}
+			x = y = z = -0.5f;
+		}
+
+
 		//Spheres
 		for (int i = 0; i < m_iNumSpheres; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
 			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
-			//TODO: draw grid 
+
 		}
 		break;
 	case 0:
