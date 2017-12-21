@@ -19,7 +19,7 @@ struct Point {
 	Vec3 position;
 	Vec3 velocity;
 	Vec3 force;
-	
+	bool isFixed;
 };
 
 class MassSpringSystemSimulator:public Simulator{

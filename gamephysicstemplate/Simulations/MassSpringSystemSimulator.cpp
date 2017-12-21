@@ -16,8 +16,6 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 }
 
 
-
-
 const char * MassSpringSystemSimulator::getTestCasesStr()
 {
 	return "Demo 1, Demo 2, Demo 3, Demo 4";
@@ -109,12 +107,11 @@ void MassSpringSystemSimulator::onMouse(int x, int y)
 
 void MassSpringSystemSimulator::integrateEuler(float timeStep)
 {
-	Point oldPoint;
-
+	
 	for (int i = 0; i < pointList.size(); i++) {
-		oldPoint = pointList[i];
 		//y1 = y0 + hf(x0, y0)
-		pointList[i].position = oldPoint.position + timeStep * oldPoint.velocity;
+		pointList[i].position = getPositionOfMassPoint(i) + timeStep * getVelocityOfMassPoint(i);
+
 	}
 
 
@@ -122,11 +119,12 @@ void MassSpringSystemSimulator::integrateEuler(float timeStep)
 
 void MassSpringSystemSimulator::integrateMidpoint(float timeStep)
 {
-	Point oldPoint;
-
 	for (int i = 0; i < pointList.size(); i++) {
-		oldPoint = pointList[i];
-		//Midpoint
+		//y1 = y0 + h * f(x0, y0)
+		Vec3 posPlusH = getPositionOfMassPoint(i) + timeStep * getVelocityOfMassPoint(i);
+		Vec3 velHalfH = (posPlusH - getPositionOfMassPoint(i)) / timeStep;
+
+		pointList[i].position = getPositionOfMassPoint(i) + timeStep * velHalfH;
 	}
 }
 
@@ -151,6 +149,9 @@ int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool i
 	newPoint.position = position;
 	newPoint.velocity = Velocity;
 	newPoint.force = 0;
+	if (isFixed) {
+		newPoint.isFixed = isFixed;
+	}
 	pointList.push_back(newPoint);
 	return pointList.size() - 1;
 }
@@ -185,4 +186,10 @@ Vec3 MassSpringSystemSimulator::getVelocityOfMassPoint(int index)
 
 void MassSpringSystemSimulator::applyExternalForce(Vec3 force)
 {
+	//F = m*a
+	for (int i = 0; i < pointList.size(); i++)
+	{
+		Vec3 accel = force / m_fMass;
+
+	}
 }
