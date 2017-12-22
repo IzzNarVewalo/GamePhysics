@@ -57,7 +57,7 @@ protected:
 	static std::function<float(float)> m_Kernels[5];
 	
 	int   m_iAccelerator; // switch between NAIVEACC and GRIDACC, (optionally, KDTREEACC, 2)
-	int   m_iIntegrator; //I added this, so you can switch between leap frog and midpoint (like in massspringsystem)
+	int   m_iIntegrator; //I added this, so you can switch between leap frog and midpoint (like in massspringsystem) <- isn't used
 	
 	SphereSystem * m_pSphereSystem; // add your own sphere system member!
 	boolean gridDrawn = true;

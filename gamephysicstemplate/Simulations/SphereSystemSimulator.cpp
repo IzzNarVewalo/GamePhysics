@@ -222,14 +222,12 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		m_pSphereSystem->addSphereToSystem();
 	}
 
-
 	leapfrogStep(timeStep);
 
 	//reset forces
 	for (int i = 0; i < m_iNumSpheres; i++) {
 		m_pSphereSystem->setForce(i, externalForce);
 	}
-
 
 	switch (m_iTestCase) {
 	case 0:
@@ -261,7 +259,15 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 
 	case 2:
 		//hashe spheres in grid rein
+		//ich habe 1000 zellen, und schaue mir für jede kugel an, ob ihr mittelpunkt in diesem wuerfel liegt
+		for (int i = 0; i < m_iNumSpheres; i++) {
+			std::vector<Sphere> tmpsphere = m_pSphereSystem->getSpheres();
+			Vec3 tmppos = tmpsphere[i].position;
+			Sphere* tmpgrid = m_pSphereSystem->getUniformGrid();
 
+			//position auf 0.1 genauigkeit abrunden und zuweisen
+
+		}
 
 		break;
 	case 3:

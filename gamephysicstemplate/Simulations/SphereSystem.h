@@ -67,6 +67,10 @@ public:
 		spheres.pop_back();
 	}
 
+	Sphere* getUniformGrid() {
+		return uniformGrif;
+	}
+
 private:
 	//Attributes
 	std::vector<Sphere> spheres; // all spheres in a system
@@ -77,6 +81,6 @@ private:
 	int zLevel = 5;
 
 	//uniform grid
-	int m = 10; //number of cells in a grid
+	int m = 1000; //number of cells in a grid 10*10*10
 	Sphere* uniformGrif = new Sphere[10 * m];
 };
