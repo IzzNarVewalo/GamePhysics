@@ -71,6 +71,10 @@ public:
 		return uniformGrif;
 	}
 
+	int getNumGrid() {
+		return m * 10;
+	}
+
 private:
 	//Attributes
 	std::vector<Sphere> spheres; // all spheres in a system
@@ -83,4 +87,5 @@ private:
 	//uniform grid
 	int m = 1000; //number of cells in a grid 10*10*10
 	Sphere* uniformGrif = new Sphere[10 * m];
+
 };

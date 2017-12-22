@@ -257,20 +257,37 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 
 		break;
 
-	case 2:
+	case 1:
 		//hashe spheres in grid rein
 		//ich habe 1000 zellen, und schaue mir für jede kugel an, ob ihr mittelpunkt in diesem wuerfel liegt
+		
+	
+
 		for (int i = 0; i < m_iNumSpheres; i++) {
 			std::vector<Sphere> tmpsphere = m_pSphereSystem->getSpheres();
 			Vec3 tmppos = tmpsphere[i].position;
 			Sphere* tmpgrid = m_pSphereSystem->getUniformGrid();
 
-			//position auf 0.1 genauigkeit abrunden und zuweisen
+			//position durch gridgoesse teilen und abhaengig davon im array speichern
+			tmppos += Vec3(0.5f, 0.5f, 0.5f);
+			tmppos /= 10.0f;
 
+			m_pSphereSystem->getUniformGrid()[(int) tmppos.x + (int)tmppos.y + (int)tmppos.z] = tmpsphere[i];
+				
+			//schauen ob mehrere in selber zelle drinnen liegen
+			for (int j = 0; j < m_pSphereSystem->getNumGrid(); j++) {
+				
+				int count = 0;
+
+				//check for collision
+				/*if (tmpgrid[j] == 0) {
+
+				}*/
+			}
 		}
 
 		break;
-	case 3:
+	case 2:
 
 		break;
 	default:
