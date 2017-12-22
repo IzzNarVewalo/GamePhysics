@@ -2,6 +2,7 @@
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
 #include <vector>
+#include <iostream>
 
 // Do Not Change
 #define EULER 0
@@ -52,6 +53,7 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+	float getCurrentSpringLength(Vec3 point1, Vec3 point2);
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
