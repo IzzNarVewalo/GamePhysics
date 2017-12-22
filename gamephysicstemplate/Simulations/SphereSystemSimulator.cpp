@@ -22,10 +22,10 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_fMass = 10.0f;
 	m_fRadius = 0.05f;
 	m_fForceScaling = 0.0f;
-	m_fDamping = 5.0f;
-	m_pSphereSystem = new SphereSystem();
+	m_fDamping = 5.0f;	
 	m_iKernel = 1;
-	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
+	m_iNumSpheres = 0;
+	m_pSphereSystem = nullptr;
 	m_iIntegrator = MIDPOINT; //0 midpoint, 1 leap frog
 
 	//if gravity on, accelerate in -y-direction
@@ -152,7 +152,7 @@ void SphereSystemSimulator::notifyCaseChanged(int testCase)
 	{
 	case 0:
 		cout << "Demo 1 !\n";
-
+		setupdemo1();
 		break;
 	case 1:
 		cout << "Demo 2 !\n";
@@ -166,6 +166,8 @@ void SphereSystemSimulator::notifyCaseChanged(int testCase)
 		cout << "Empty Test!\n";
 		break;
 	}
+
+	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 }
 
 void SphereSystemSimulator::externalForcesCalculations(float timeElapsed)
@@ -273,16 +275,31 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 void SphereSystemSimulator::setupdemo2()
 {
 	//clear scene
-	while (!m_pSphereSystem->getSpheres().empty()) {
-		m_pSphereSystem->popBack();
+	if (m_pSphereSystem == nullptr) {
+		m_pSphereSystem = new SphereSystem(2);
 	}
-
-	int i = 1;
-	while (i != 100) {
-		m_pSphereSystem->addSphereToSystem(); i++;
-	}
+	else {
+		delete m_pSphereSystem;
+		m_pSphereSystem = new SphereSystem(2);
+	}	
 
 	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
+
+	m_fRadius = 0.05f;
+}
+
+void SphereSystemSimulator::setupdemo1()
+{
+	//clear scene
+	if (m_pSphereSystem == nullptr) {
+		m_pSphereSystem = new SphereSystem(1);
+	}
+	else {
+		delete m_pSphereSystem;
+		m_pSphereSystem = new SphereSystem(1);
+	}
+
+	m_fRadius = 0.05f;
 }
 
 void SphereSystemSimulator::onClick(int x, int y)

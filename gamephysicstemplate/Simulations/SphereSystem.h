@@ -13,7 +13,7 @@ class SphereSystem {
 
 public:
 	//Constructors
-	SphereSystem();
+	SphereSystem(int i);
 	//Functions
 	std::vector<Sphere> getSpheres();
 	//fuegt neue kugel in naechstem level hinzu

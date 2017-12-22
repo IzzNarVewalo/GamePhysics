@@ -25,6 +25,7 @@ public:
 	void leapfrogStep(float timeStep); 
 	void simulateTimestep(float timeStep);
 	void setupdemo2();
+	void setupdemo1();
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
