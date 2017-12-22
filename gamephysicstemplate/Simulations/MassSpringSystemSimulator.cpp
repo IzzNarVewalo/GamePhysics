@@ -14,6 +14,7 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 
 	addMassPoint(Vec3(0, 0.5f, 0), Vec3(), true);
 	addMassPoint(Vec3(0, 0, 0), Vec3(0, 0.1f, 0), false);
+	addSpring(0, 1, 0.5f);
 }
 
 
@@ -49,12 +50,13 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 	Vec3 scale = Vec3(0.1f, 0.1f, 0.1f);
 
 	//Light Colour, Specular Colour, Specular Power, Diffuse Colour
-	DUC->setUpLighting(Vec3(0.5f, 0.5f, 0), Vec3(1, 0, 0), 0.5f, Vec3(0.5f, 0, 0.5f));
+	DUC->setUpLighting(Vec3(0.7f, 0.3f, 0.3f), Vec3(1, 0, 0), 0.5f, Vec3(0.5f, 0.1f, 0.5f));
 	
 	for (int i = 0; i < pointList.size(); i++) {
 		Point point = pointList[i];
 		//Position: from -0.5 to 0.5 in every axis, Scale
 		DUC->drawSphere(point.position, scale);
+		//std::cout << "a ball";
 	}
 
 	for (int i = 0; i < springList.size(); i++) {
@@ -62,8 +64,9 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 
 		DUC->beginLine();
 		//Start Position, Start Colour, End Position, Start Colour
-		DUC->drawLine(spring.point1, Vec3(0.3f, 0.35f, 0.35f), spring.point2, Vec3(0.9f, 0, 0.1f));
+		DUC->drawLine(spring.point1, Vec3(0.3f, 0.35f, 0.35f), spring.point2, Vec3(0.9f, 0.1f, 0.1f));
 		DUC->endLine();
+		std::cout << "drawed a line" << endl;
 	}
 
 	
@@ -84,7 +87,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	//applyExternalForce(Vec3(0, -9.81f, 0));
 	switch (m_iIntegrator) {
 	case EULER:
-		integrateEuler(timeStep);
+		//integrateEuler(timeStep);
 		break;
 	case MIDPOINT:
 		integrateMidpoint(timeStep);
@@ -120,7 +123,7 @@ void MassSpringSystemSimulator::integrateEuler(float timeStep)
 			totalForce = pointList[i].force;
 
 			for (int j = 0; j < springList.size(); j++) {
-				if (springList[i].point1 == i) {
+				if (springList[j].point1 == i) {
 					
 					currentLength = getCurrentSpringLength(pointList[springList[i].point1].position, pointList[springList[i].point2].position);
 
@@ -128,19 +131,23 @@ void MassSpringSystemSimulator::integrateEuler(float timeStep)
 					totalForce += -m_fStiffness * (currentLength - springList[i].initialLength) * 
 						(getPositionOfMassPoint(springList[i].point1) - getPositionOfMassPoint(springList[i].point2)) / currentLength;
 				}
-				if (springList[i].point2 == i) {
+				if (springList[j].point2 == i) {
 					currentLength = getCurrentSpringLength(pointList[springList[i].point2].position, pointList[springList[i].point1].position);
 
 					//Formula from the slides
 					totalForce += -m_fStiffness * (currentLength - springList[i].initialLength) *
 						(getPositionOfMassPoint(springList[i].point2) - getPositionOfMassPoint(springList[i].point1)) / currentLength;
 				}
-			}
 
+
+
+				//y1 = y0 + hf(x0, y0)
+				pointList[i].position = getPositionOfMassPoint(i) + timeStep * getVelocityOfMassPoint(i);
+				pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * totalForce / m_fMass;
+			}	
 			
-			//y1 = y0 + hf(x0, y0)
-			pointList[i].position = getPositionOfMassPoint(i) + timeStep * getVelocityOfMassPoint(i);
-			pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * totalForce / m_fMass;
+
+			std::cout << "Point" << i << ": " << pointList[i].position << endl;
 		}
 	}
 
@@ -182,9 +189,8 @@ int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool i
 	newPoint.position = position;
 	newPoint.velocity = Velocity;
 	newPoint.force = 0;
-	if (isFixed) {
-		newPoint.isFixed = isFixed;
-	}
+	newPoint.isFixed = isFixed;
+	
 	pointList.push_back(newPoint);
 	return pointList.size() - 1;
 }
