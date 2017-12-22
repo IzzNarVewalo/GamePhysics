@@ -64,7 +64,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 
 		DUC->beginLine();
 		//Start Position, Start Colour, End Position, Start Colour
-		DUC->drawLine(spring.point1, Vec3(0.3f, 0.35f, 0.35f), spring.point2, Vec3(0.9f, 0.1f, 0.1f));
+		DUC->drawLine(getPositionOfMassPoint(spring.point1), Vec3(0.3f, 0.35f, 0.35f), getPositionOfMassPoint(spring.point2), Vec3(0.9f, 0.1f, 0.1f));
 		DUC->endLine();
 		std::cout << "drawed a line" << endl;
 	}
@@ -87,7 +87,7 @@ void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 	//applyExternalForce(Vec3(0, -9.81f, 0));
 	switch (m_iIntegrator) {
 	case EULER:
-		//integrateEuler(timeStep);
+		integrateEuler(timeStep);
 		break;
 	case MIDPOINT:
 		integrateMidpoint(timeStep);
