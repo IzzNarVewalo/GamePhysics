@@ -12,7 +12,8 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_externalForce = Vec3();
 	m_iTestCase = 0;
 
-
+	addMassPoint(Vec3(0, 0.5f, 0), Vec3(), true);
+	addMassPoint(Vec3(0, 0, 0), Vec3(0, 0.1f, 0), false);
 }
 
 
@@ -153,8 +154,10 @@ void MassSpringSystemSimulator::integrateMidpoint(float timeStep)
 		Vec3 posHalfH = getPositionOfMassPoint(i) + timeStep / 2 * getVelocityOfMassPoint(i);
 		Vec3 velHalfH = getVelocityOfMassPoint(i) + timeStep / 2 * pointList[i].force / m_fMass;
 
+
+
 		pointList[i].position = getPositionOfMassPoint(i) + timeStep * velHalfH;
-		pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * acceleration;
+		//pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * acceleration;
 	}
 }
 
