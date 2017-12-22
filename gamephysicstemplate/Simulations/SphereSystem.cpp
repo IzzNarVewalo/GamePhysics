@@ -28,7 +28,7 @@ void SphereSystem::addSphereToSystem()
 	newSphere.force = Vec3();
 	xLevel--;
 
-	if (zLevel <= -5 && xLevel < -5) {
+	if (zLevel < -5 && xLevel < -5) {
 		ylevel--; zLevel = xLevel = 5;
 	}
 

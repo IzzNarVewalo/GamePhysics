@@ -187,26 +187,26 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 		if (m_pSphereSystem->getPosition(i).y <= -0.5f || m_pSphereSystem->getPosition(i).y >= 0.5f) {
 			m_pSphereSystem->setVelocityY(i, veltmp.y *= (-0.99f));
 			if (m_pSphereSystem->getPosition(i).y <= -0.5f)
-				m_pSphereSystem->setPositionY(i, -0.48f);
+				m_pSphereSystem->setPositionY(i, -0.5f);
 			else
-				m_pSphereSystem->setPositionY(i, 0.48f);
+				m_pSphereSystem->setPositionY(i, 0.5f);
 		}
 
 		//bounce when hit the walls & velocity damping
 		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f)) {
 			m_pSphereSystem->setVelocityX(i, veltmp.x *= (-0.90f));
 			if (m_pSphereSystem->getPosition(i).x <= -0.5f)
-				m_pSphereSystem->setPositionX(i, -0.48f);
+				m_pSphereSystem->setPositionX(i, -0.5f);
 			else
-				m_pSphereSystem->setPositionX(i, 0.48f);
+				m_pSphereSystem->setPositionX(i, 0.5f);
 		}
 
 		if ((m_pSphereSystem->getPosition(i).z <= -0.5f || m_pSphereSystem->getPosition(i).z >= 0.5f)) {
 			m_pSphereSystem->setVelocityZ(i, veltmp.z *= (-0.90f));
 			if (m_pSphereSystem->getPosition(i).z <= -0.5f)
-				m_pSphereSystem->setPositionZ(i, -0.48f);
+				m_pSphereSystem->setPositionZ(i, -0.5f);
 			else
-				m_pSphereSystem->setPositionZ(i, 0.48f);
+				m_pSphereSystem->setPositionZ(i, 0.5f);
 		}
 	}
 }
@@ -214,13 +214,20 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 
 void SphereSystemSimulator::simulateTimestep(float timeStep)
 {
-	int lambda = 1;
+	int lambda = 11;
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
 	}
 
+
 	leapfrogStep(timeStep);
+
+	//reset forces
+	for (int i = 0; i < m_iNumSpheres; i++) {
+		m_pSphereSystem->setForce(i, externalForce);
+	}
+
 
 	switch (m_iTestCase) {
 	case 0:
@@ -234,12 +241,15 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 				//compute force for every sphere according to f(d)
 				if (posDif <= radQuad) {
 
-					m_pSphereSystem->setForce(i, m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda);
-					m_pSphereSystem->setForce(j, m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda);
+					float strength = m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda;
+					Vec3 directionOfForce = m_pSphereSystem->getPosition(i) - m_pSphereSystem->getPosition(j);
+					//einheitsvektor
+					directionOfForce /= posDif;
 
-					m_pSphereSystem->setVelocity(i, m_pSphereSystem->getVelocity(i) + m_pSphereSystem->getForceOf(i) / m_fMass * timeStep);
-					m_pSphereSystem->setVelocity(j, m_pSphereSystem->getVelocity(j) + m_pSphereSystem->getForceOf(j) / m_fMass * timeStep);
+					Vec3 resForce = directionOfForce * strength;
 
+					m_pSphereSystem->setForce(i, resForce);						
+					m_pSphereSystem->setForce(j, -resForce);
 				}
 			}
 
