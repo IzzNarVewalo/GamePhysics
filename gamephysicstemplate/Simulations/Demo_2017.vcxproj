@@ -236,6 +236,7 @@
   <ItemGroup>
     <ClInclude Include="collisionDetect.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />
+    <ClInclude Include="DreiB.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="RigidBodySystemSimulator.h" />
