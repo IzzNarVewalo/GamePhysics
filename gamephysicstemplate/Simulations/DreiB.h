@@ -1,4 +1,7 @@
 #pragma once
+#ifndef DREIB_h
+#define DREIB_h
+
 #include "DreiBSystem.h"
 
 //baukloetzchen und ball
@@ -13,3 +16,4 @@ private:
 
 	DreiBSystem* m_pDreiBSystem;
 };
+#endif
