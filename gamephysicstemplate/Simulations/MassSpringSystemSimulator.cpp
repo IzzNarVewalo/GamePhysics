@@ -12,8 +12,8 @@ MassSpringSystemSimulator::MassSpringSystemSimulator()
 	m_externalForce = Vec3(0, -9.81f, 0);;
 	m_iTestCase = 0;
 
-	addMassPoint(Vec3(0, 0.5f, 0), Vec3(), true);
-	addMassPoint(Vec3(0, 0, 0), Vec3(0, 0.5f, 0), false);
+	addMassPoint(Vec3(0, 0.5f, 0), Vec3(1.0f, 0, 0), false);
+	addMassPoint(Vec3(0, 0, 0), Vec3(-1.0f, 0, 0), false);
 	addSpring(0, 1, 0.5f);
 }
 
@@ -51,7 +51,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 
 	//Light Colour, Specular Colour, Specular Power, Diffuse Colour
 	DUC->setUpLighting(Vec3(0.7f, 0.3f, 0.3f), Vec3(1, 0, 0), 0.5f, Vec3(0.5f, 0.1f, 0.5f));
-	
+
 	for (int i = 0; i < pointList.size(); i++) {
 		Point point = pointList[i];
 		//Position: from -0.5 to 0.5 in every axis, Scale
@@ -69,7 +69,7 @@ void MassSpringSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCon
 		std::cout << "drawed a line" << endl;
 	}
 
-	
+
 }
 
 void MassSpringSystemSimulator::notifyCaseChanged(int testCase)
@@ -83,7 +83,7 @@ void MassSpringSystemSimulator::externalForcesCalculations(float timeElapsed)
 
 void MassSpringSystemSimulator::simulateTimestep(float timeStep)
 {
-	
+
 	switch (m_iIntegrator) {
 	case EULER:
 		integrateEuler(timeStep);
@@ -112,91 +112,98 @@ void MassSpringSystemSimulator::onMouse(int x, int y)
 
 void MassSpringSystemSimulator::integrateEuler(float timeStep)
 {
-	Vec3 totalForce;
 	float currentLength;
+	
+
+	for (int j = 0; j < springList.size(); j++) {
+		
+		currentLength = getCurrentSpringLength(pointList[springList[j].point1].position, pointList[springList[j].point2].position);
+
+		//Formula from the slides
+		pointList[springList[j].point1].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point1) - getPositionOfMassPoint(springList[j].point2)) / currentLength;
+		
+
+		currentLength = getCurrentSpringLength(pointList[springList[j].point2].position, pointList[springList[j].point1].position);
+
+		//Formula from the slides
+		pointList[springList[j].point2].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point2) - getPositionOfMassPoint(springList[j].point1)) / currentLength;
+		
+	}
 
 	for (int i = 0; i < pointList.size(); i++) {
-		
 		//check if point neends to be moved
 		if (!pointList[i].isFixed) {
-			totalForce = pointList[i].force + m_externalForce;
-
-			for (int j = 0; j < springList.size(); j++) {
-				if (springList[j].point1 == i) {
-					
-					currentLength = getCurrentSpringLength(pointList[springList[j].point1].position, pointList[springList[j].point2].position);
-
-					//Formula from the slides
-					totalForce += -m_fStiffness * (currentLength - springList[j].initialLength) * 
-						(getPositionOfMassPoint(springList[j].point1) - getPositionOfMassPoint(springList[j].point2)) / currentLength;
-				}
-				if (springList[j].point2 == i) {
-					currentLength = getCurrentSpringLength(pointList[springList[j].point2].position, pointList[springList[j].point1].position);
-
-					//Formula from the slides
-					totalForce += -m_fStiffness * (currentLength - springList[j].initialLength) *
-						(getPositionOfMassPoint(springList[j].point2) - getPositionOfMassPoint(springList[j].point1)) / currentLength;
-				}
-
-			}	
-			
 
 			//y1 = y0 + hf(x0, y0)
 			pointList[i].position = getPositionOfMassPoint(i) + timeStep * getVelocityOfMassPoint(i);
-			pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * totalForce / m_fMass;
+			pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * (pointList[i].force + m_externalForce) / m_fMass;
 			std::cout << "Point" << i << ": " << pointList[i].position << endl;
+			pointList[i].force = 0;
 		}
 	}
-
-
+	
 }
 
 void MassSpringSystemSimulator::integrateMidpoint(float timeStep)
 {
-
-	Vec3 totalForce;
 	float currentLength;
+	std::vector<Point> pointListTmp = pointList;
+
+	for (int j = 0; j < springList.size(); j++) {
+			
+		//point1
+		currentLength = getCurrentSpringLength(pointList[springList[j].point1].position, pointList[springList[j].point2].position);
+		//Formula from the slides
+		pointListTmp[springList[j].point1].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point1) - getPositionOfMassPoint(springList[j].point2)) / currentLength;
+			
+		//point2
+		currentLength = getCurrentSpringLength(pointList[springList[j].point2].position, pointList[springList[j].point1].position);
+		//Formula from the slides
+		pointListTmp[springList[j].point2].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point2) - getPositionOfMassPoint(springList[j].point1)) / currentLength;
+	}
 
 	for (int i = 0; i < pointList.size(); i++) {
 
 		//check if point neends to be moved
 		if (!pointList[i].isFixed) {
-			totalForce = pointList[i].force + m_externalForce;
-
-			for (int j = 0; j < springList.size(); j++) {
-				if (springList[j].point1 == i) {
-
-					currentLength = getCurrentSpringLength(pointList[springList[j].point1].position, pointList[springList[j].point2].position);
-
-					//Formula from the slides
-					totalForce += -m_fStiffness * (currentLength - springList[j].initialLength) *
-						(getPositionOfMassPoint(springList[j].point1) - getPositionOfMassPoint(springList[j].point2)) / currentLength;
-				}
-				if (springList[j].point2 == i) {
-					currentLength = getCurrentSpringLength(pointList[springList[j].point2].position, pointList[springList[j].point1].position);
-
-					//Formula from the slides
-					totalForce += -m_fStiffness * (currentLength - springList[j].initialLength) *
-						(getPositionOfMassPoint(springList[j].point2) - getPositionOfMassPoint(springList[j].point1)) / currentLength;
-				}
-
-			}
 
 			//y1 = y0 + h * f(x0, y0)
-			Vec3 posHalfH = getPositionOfMassPoint(i) + timeStep / 2 * getVelocityOfMassPoint(i);
-			Vec3 velHalfH = getVelocityOfMassPoint(i) + timeStep / 2 * totalForce / m_fMass;
+			pointListTmp[i].position = getPositionOfMassPoint(i) + timeStep / 2 * getVelocityOfMassPoint(i);
+			pointListTmp[i].velocity = getVelocityOfMassPoint(i) + timeStep / 2 * (pointListTmp[i].force + m_externalForce) / m_fMass;
 
-
-
-			pointList[i].position = getPositionOfMassPoint(i) + timeStep * velHalfH;
-			pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * totalForce / m_fMass;
-			std::cout << "Point" << i << ": " << pointList[i].position << endl;
+			pointList[i].position = getPositionOfMassPoint(i) + timeStep * pointListTmp[i].velocity;
+			pointListTmp[i].force = 0;
 		}
-
-
-	
-		
 	}
+
+	for (int j = 0; j < springList.size(); j++) {
+
+		//point1
+		currentLength = getCurrentSpringLength(pointList[springList[j].point1].position, pointList[springList[j].point2].position);
+		//Formula from the slides
+		pointList[springList[j].point1].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point1) - getPositionOfMassPoint(springList[j].point2)) / currentLength;
+
+		//point2
+		currentLength = getCurrentSpringLength(pointList[springList[j].point2].position, pointList[springList[j].point1].position);
+		//Formula from the slides
+		pointList[springList[j].point2].force += -m_fStiffness * (currentLength - springList[j].initialLength) *
+			(getPositionOfMassPoint(springList[j].point2) - getPositionOfMassPoint(springList[j].point1)) / currentLength;
+	}
+
+	for (int i = 0; i < pointList.size(); i++) {
+		if (!pointList[i].isFixed) {
+			//CHANGE THIS
+			pointList[i].velocity = getVelocityOfMassPoint(i) + timeStep * (pointList[i].force + m_externalForce) / m_fMass;
+			std::cout << "Point" << i << ": " << pointList[i].position << endl;
+			pointList[i].force = 0;
+		}
+	}
+
 }
 
 void MassSpringSystemSimulator::setMass(float mass)
@@ -221,7 +228,7 @@ int MassSpringSystemSimulator::addMassPoint(Vec3 position, Vec3 Velocity, bool i
 	newPoint.velocity = Velocity;
 	newPoint.force = 0;
 	newPoint.isFixed = isFixed;
-	
+
 	pointList.push_back(newPoint);
 	return pointList.size() - 1;
 }

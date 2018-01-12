@@ -23,6 +23,8 @@ struct Point {
 	bool isFixed;
 };
 
+
+
 class MassSpringSystemSimulator:public Simulator{
 public:
 	// Construtors
