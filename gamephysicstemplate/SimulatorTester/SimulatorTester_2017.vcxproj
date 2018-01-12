@@ -185,6 +185,9 @@
       <Project>{3cabed2c-12f1-4408-aaae-e2185a426f35}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PublicMassSpringSystemTests.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
