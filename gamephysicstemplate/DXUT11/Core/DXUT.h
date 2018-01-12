@@ -14,7 +14,7 @@
 
 #ifndef UNICODE
 #error "DXUT requires a Unicode build."
-#endifbkvhgcfgcftcvfjcvjvjzvczjtvcjzv
+#endif
 
 #ifndef STRICT
 #define STRICT
