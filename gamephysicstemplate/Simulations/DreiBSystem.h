@@ -8,5 +8,5 @@ public:
 	~DreiBSystem();
 
 private:
-	Vec3 u;
+
 };
