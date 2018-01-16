@@ -76,9 +76,9 @@ int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass, int test)
 	rigid.m_imass = mass;
 
 	//calculate inertia tensor in 3D
-	float Ixx = mass *(size.z * size.z + size.x * size.x);
-	float Iyy = mass *(size.y * size.y + size.x * size.x);
-	float Izz = mass *(size.y * size.y + size.z * size.z);
+	float Ixx = mass *(size.z * size.z + size.y * size.y);
+	float Iyy = mass *(size.z * size.z + size.x * size.x);
+	float Izz = mass *(size.y * size.y + size.x * size.x);
 
 	float Ixy = mass *(-size.x*size.y);
 	float Ixz = mass *(-size.x*size.z); //z 2, 1 y, 3 x
