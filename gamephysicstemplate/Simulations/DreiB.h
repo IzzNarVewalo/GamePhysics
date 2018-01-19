@@ -12,15 +12,17 @@ public:
 	DreiB();
 
 	 //Functions
-	const char * getTestCasesStr() = 0;
-	void reset() = 0;
-	void initUI(DrawingUtilitiesClass * DUC) = 0;
-	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext) = 0;
-	void externalForcesCalculations(float timeElapsed) = 0;
-	void simulateTimestep(float timeStep) = 0;
-	void notifyCaseChanged(int testCase) = 0;
+	const char * getTestCasesStr();
+	void reset();
+	void initUI(DrawingUtilitiesClass * DUC);
+	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
+	void externalForcesCalculations(float timeElapsed);
+	void simulateTimestep(float timeStep);
+	void notifyCaseChanged(int testCase);
 
-	void onClick(int x, int y) = 0 {
+	void addBox(Vec3 pos, Vec3 size, int mass);
+
+	void onClick(int x, int y) {
 		m_trackmouse.x = x;
 		m_trackmouse.y = y;
 	};
@@ -33,6 +35,9 @@ public:
 	};
 
 private:
+
+	DreiBSystem * m_pDreiBSystem;
+	Vec3 m_externalForce;
 
 	DreiBSystem* m_pDreiBSystem;
 	Point2D m_mouse;
