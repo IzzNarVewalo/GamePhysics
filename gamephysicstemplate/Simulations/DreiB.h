@@ -20,11 +20,11 @@ public:
 		m_trackmouse.x = m_trackmouse.y = 0;
 		m_oldtrackmouse.x = m_oldtrackmouse.y = 0;
 	};
-	void initUI(DrawingUtilitiesClass * DUC) = 0;
-	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext) = 0;
-	void externalForcesCalculations(float timeElapsed) = 0;
-	void simulateTimestep(float timeStep) = 0;
-	void notifyCaseChanged(int testCase) = 0;
+	void initUI(DrawingUtilitiesClass * DUC);
+	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
+	void externalForcesCalculations(float timeElapsed);
+	void simulateTimestep(float timeStep);
+	void notifyCaseChanged(int testCase);
 
 	void onClick(int x, int y) {
 		m_trackmouse.x = x;
@@ -37,9 +37,18 @@ public:
 		m_trackmouse.y = y;
 	};
 
+	void* setNumBalls() {
+		m_pDreiBSystem->set
+	}
+
+	void incNumBalls() {
+
+	}
+
 private:
 
 	DreiBSystem* m_pDreiBSystem;
+	float m_fextraForce;
 
 	Point2D m_mouse;
 	Point2D m_trackmouse;
