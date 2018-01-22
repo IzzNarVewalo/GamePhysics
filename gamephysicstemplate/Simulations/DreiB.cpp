@@ -21,6 +21,8 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 	case 1:
 		TwAddButton(DUC->g_pTweakBar, "number balls", [](void * s) { incNumBalls(); }, nullptr, "");
 		TwAddVarRW(DUC->g_pTweakBar, "number balls", TW_TYPE_INT32, set(), "");
+		//evtl kleidungsstuek bewerfen-> dann noch zwischen verschiedenen objekten und anzahl von baellen unterscheiden, a
+		//nstatt bei demos es z uunterscheiden
 		break;
 	case 2:
 		break;
