@@ -1,5 +1,10 @@
 #pragma once
 #include "Simulator.h"
+//for torque
+struct TorqueChar {
+	//page 22
+	Vec3 xi, fi;
+};
 
 struct Box {
 	Vec3 m_boxCenter, m_boxSize, m_linearVelocity, m_angularMomentum, m_angularVelocity, m_totalTorque, m_totalForce;
@@ -10,12 +15,6 @@ struct Box {
 	Mat4 m_inertiaTensor;
 	//mass points producing toques -> m_torque is total torque
 	std::vector<TorqueChar> m_pointsTorque;
-};
-
-//for torque
-struct TorqueChar {
-	//page 22
-	Vec3 xi, fi;
 };
 
 struct Ball {
@@ -48,6 +47,10 @@ public:
 		return m_iNumBalls;
 	}
 
+
+	void setNumBalls(int num) {
+		m_iNumBalls = num;
+	}
 
 	void setTotalTorque(int i, Vec3 torque) {
 		m_boxWall[i].m_totalTorque = torque;

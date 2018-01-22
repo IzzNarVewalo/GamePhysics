@@ -3,6 +3,7 @@
 #define DREIB_h
 
 #include "DreiBSystem.h"
+#include "ParticleCollisionSystem.h"
 
 //baukloetzchen und ball
 //simulator
@@ -12,7 +13,7 @@ public:
 	DreiB();
 
 	const char * getTestCasesStr() {
-		return "Holzkloetzchenspiel, 2.0Holzkloetzchenspiel";
+		return "Holzkloetzchenspiel, 2.0Holzkloetzchenspiel, Teilchenkol";
 	};
 
 	void reset() {
@@ -37,18 +38,21 @@ public:
 		m_trackmouse.y = y;
 	};
 
-	void* setNumBalls() {
-		m_pDreiBSystem->set
+
+	void setNumBalls(int num) {
+		m_pDreiBSystem->setNumBalls(num);
 	}
 
-	void incNumBalls() {
-
-	}
+	void incNumBalls();
 
 private:
 
 	DreiBSystem* m_pDreiBSystem;
 	float m_fextraForce;
+
+	//
+	ParticleCollisionSystem* m_particleColSys;
+
 
 	Point2D m_mouse;
 	Point2D m_trackmouse;
