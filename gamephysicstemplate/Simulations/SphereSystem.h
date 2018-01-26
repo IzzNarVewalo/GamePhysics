@@ -1,5 +1,7 @@
 #pragma once
+#include <array>
 #include "Simulator.h"
+
 
 //system of spheres
 //every sphere is definied by.. 
@@ -9,6 +11,9 @@ struct Sphere {
 	Vec3 position, velocity, force;
 };
 
+const int cubeSize = 1000; //number of cells in a grid 10*10*10
+const int bucketSize = 10;
+
 class SphereSystem {
 
 public:
@@ -16,6 +21,7 @@ public:
 	SphereSystem(int i);
 	//Functions
 	std::vector<Sphere> getSpheres();
+
 	//fuegt neue kugel in naechstem level hinzu
 	void addSphereToSystem();
 	void setPosition(int i, Vec3 pos) {
@@ -51,6 +57,10 @@ public:
 		spheres[i].force = force;
 	}
 
+	void setForceDemo2(int i, Vec3 force, int index) {
+		uniformGrid[index][i].force = force;
+	}
+
 	Vec3 getVelocity(int i) {
 		return spheres[i].velocity;
 	}
@@ -67,12 +77,32 @@ public:
 		spheres.pop_back();
 	}
 
-	Sphere* getUniformGrid() {
-		return uniformGrif;
+	int getNumGrid() {
+		return cubeSize * bucketSize;
 	}
 
-	int getNumGrid() {
-		return m * 10;
+	void saveToArray(int x, int y, int z, int i) {
+		int index = x + y * 10 + z * 100;
+
+		uniformGrid[index].push_back(spheres[i]);
+
+		if (uniformGrid[index].size() == 2) {
+			colIndizes.push_back(index);
+		}
+	}
+
+	std::vector<int> getColIndezes() {
+		return colIndizes;
+	}
+
+	std::vector<Sphere> getColSpheres(int index) {
+		return uniformGrid[index];
+	}
+
+	void resetUniformGrid() {
+		for (int i = 0; i < uniformGrid.size(); i++) {
+			uniformGrid[i].clear();
+		}
 	}
 
 private:
@@ -84,8 +114,7 @@ private:
 	int xLevel = 5;
 	int zLevel = 5;
 
-	//uniform grid
-	int m = 1000; //number of cells in a grid 10*10*10
-	Sphere* uniformGrif = new Sphere[10 * m];
-
+	//uniform grid	
+	std::array<std::vector<Sphere>, cubeSize> uniformGrid;
+	std::vector<int> colIndizes;
 };
