@@ -2,6 +2,11 @@
 #include "Simulator.h"
 
 //Holzkloetzchen
+struct TorqueChar {
+	//page 22
+	Vec3 xi, fi;
+};
+
 struct Box {
 	//position = boxCenter
 	Vec3 m_boxCenter, m_boxSize, m_linearVelocity, m_angularMomentum, m_angularVelocity, m_totalTorque, m_totalForce;
@@ -11,11 +16,6 @@ struct Box {
 	Mat4 inertiaTensor;
 	//mass points producing toques -> m_torque is total torque
 	std::vector<TorqueChar> m_pointsTorque;
-};
-
-struct TorqueChar {
-	//page 22
-	Vec3 xi, fi;
 };
 
 struct Ball {
@@ -30,7 +30,7 @@ class DreiBSystem
 {
 public:
 	DreiBSystem();
-	~DreiBSystem();
+	~DreiBSystem() {};
 
 	//Getter & Setter
 	std::vector<Box> getBoxWalls() {
@@ -40,16 +40,18 @@ public:
 		return m_balls;
 	}
 	int getTotalMass() {
-		return m_itotalMass;
+		return m_iTotalMass;
 	}
 	int getNumBoxes() {
-		return m_iNumBoxes;
+		return m_boxWall.size();
 	}
 	int getNumBalls() {
-		return m_iNumBalls;
+		return m_balls.size();
 	}
 
-	int addBox(Vec3 pos, Vec3 size, int mass);
+	int addBox(Vec3 position, Vec3 size, int mass);
+	void reset();
+	void buildBoxWall(int wallSize,	float widthBox,	float heightBox);
 
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);
@@ -59,6 +61,5 @@ public:
 private:
 	std::vector<Box> m_boxWall;
 	std::vector<Ball> m_balls;
-	int m_itotalMass;
-	int m_iNumBoxes, m_iNumBalls;
+	int m_iTotalMass = 0;
 };

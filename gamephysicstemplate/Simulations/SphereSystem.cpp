@@ -15,7 +15,7 @@ SphereSystem::SphereSystem(int i)
 		spheres.push_back(s2);
 	}
 	else {
-		int i = 1;
+		int i = 0;
 		while (i != 100) {
 			addSphereToSystem(); i++;
 		}
