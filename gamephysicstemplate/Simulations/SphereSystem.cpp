@@ -19,6 +19,14 @@ SphereSystem::SphereSystem(int i)
 		while (i != 100) {
 			addSphereToSystem(); i++;
 		}
+
+		zLevel = 5;
+		ylevel--;
+
+		i = 0;
+		while (i != 100) {
+			addSphereToSystem(); i++;
+		}
 	}
 }
 
@@ -36,14 +44,15 @@ void SphereSystem::addSphereToSystem()
 	newSphere.force = Vec3();
 	xLevel--;
 
-	if (zLevel < -5 && xLevel < -5) {
+	if (zLevel <= -5 && xLevel <= -5) {
 		ylevel--; zLevel = xLevel = 5;
 	}
 
 	if (xLevel <= -5) {
 		zLevel--; xLevel = 5;
 	}
-	
+
+		
 	spheres.push_back(newSphere);
 }
 

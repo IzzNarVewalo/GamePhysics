@@ -218,7 +218,7 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 
 void SphereSystemSimulator::simulateTimestep(float timeStep)
 {
-	int lambda = 11;
+	int lambda = 1100;
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
@@ -230,6 +230,8 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 	for (int i = 0; i < m_iNumSpheres; i++) {
 		m_pSphereSystem->setForce(i, externalForce);
 	}
+
+	std::vector<int> tmpColIndizes;
 
 	switch (m_iTestCase) {
 	case 0:
@@ -286,39 +288,39 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 			/////////////////////////////
 			//ins array reinspeichern
 			m_pSphereSystem->saveToArray(deci.x, deci.y, deci.z, i);
+		}
+		tmpColIndizes = m_pSphereSystem->getColIndezes();
 
-			std::vector<int> tmpColIndizes = m_pSphereSystem->getColIndezes();
+		//auf collision pruefen
+		for (int b = 0; b < tmpColIndizes.size(); b++) {
 
-			//auf collision pruefen
-			for (int b = 0; b < tmpColIndizes.size(); b++) {
+			std::vector<Sphere> tmp = m_pSphereSystem->getColSpheres(tmpColIndizes[b]);
 
-				std::vector<Sphere> tmp = m_pSphereSystem->getColSpheres(deci.x * deci.y * deci.z);
+			//durch liste tmp durchiterieren
+			for (int c = 0; c < tmp.size(); c++) {
+				for (int d = 0; d < tmp.size(), c != d; d++) {
+					float posDif = norm(tmp[c].position - tmp[d].position);
+					float radQuad = m_fRadius + m_fRadius;
 
-				//durch liste tmp durchiterieren
-				for (int c = 0; c < tmp.size(); c++) {
-					for (int d = 0; d < tmp.size(), c != d; d++) {
-						float posDif = norm(tmp[c].position - tmp[d].position);
-						float radQuad = m_fRadius + m_fRadius;
+					//collision, naiv approach
+					//compute force for every sphere according to f(d)
+					if (posDif <= radQuad) {
 
-						//collision, naiv approach
-						//compute force for every sphere according to f(d)
-						if (posDif <= radQuad) {
+						float strength = m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda;
+						Vec3 directionOfForce = tmp[c].position - tmp[d].position;
+						//einheitsvektor
+						directionOfForce /= posDif;
 
-							float strength = m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda;
-							Vec3 directionOfForce = tmp[c].position - tmp[d].position;
-							//einheitsvektor
-							directionOfForce /= posDif;
+						Vec3 resForce = directionOfForce * strength;
 
-							Vec3 resForce = directionOfForce * strength;
-
-							m_pSphereSystem->setForceDemo2(c, resForce, deci.x * deci.y * deci.z);
-							m_pSphereSystem->setForceDemo2(d, -resForce, deci.x * deci.y * deci.z);
-						}
+						m_pSphereSystem->setForceDemo2(c, resForce, tmpColIndizes[b]);
+						m_pSphereSystem->setForceDemo2(d, -resForce, tmpColIndizes[b]);
 					}
 				}
-				//
 			}
+			//
 		}
+
 
 		break;
 	case 2:
