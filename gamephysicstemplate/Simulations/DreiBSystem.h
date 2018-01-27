@@ -28,7 +28,7 @@ class DreiBSystem
 {
 public:
 	DreiBSystem();
-	~DreiBSystem();
+	~DreiBSystem() {};
 
 	//Getter & Setter
 	std::vector<Box> getBoxWalls() {
@@ -38,7 +38,7 @@ public:
 		return m_balls;
 	}
 	int getTotalMass() {
-		return m_itotalMass;
+		return m_iTotalMass;
 	}
 	int getNumBoxes() {
 		return m_iNumBoxes;
@@ -75,14 +75,21 @@ public:
 	}
 
 	//fuegt kloetzchen zum turm hinzu
-
+	int addBox(Vec3 position, Vec3 size, int mass);
+	void reset();
+	void buildBoxWall(int wallSize, float widthBox, float heightBox);
+	
+	Mat4 getTranslatMatOf(int i);
+	Mat4 getRotMatOf(int i);
+	Mat4 getScaleMatOf(int i);
+	Mat4 calcTransformMatrixOf(int i);
 
 private:
 
 	std::vector<Box> m_boxWall;
 	std::vector<Ball> m_balls;
 
-	int m_itotalMass;
+	int m_iTotalMass = 0;
 	int m_iNumBoxes, m_iNumBalls;
 
 };

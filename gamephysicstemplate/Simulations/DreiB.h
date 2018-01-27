@@ -11,6 +11,7 @@ class DreiB :public Simulator {
 
 public:
 	DreiB();
+	~DreiB();
 
 	const char * getTestCasesStr() {
 		return "Holzkloetzchenspiel, 2.0Holzkloetzchenspiel, Teilchenkol";
@@ -45,13 +46,16 @@ public:
 
 	void incNumBalls();
 
+	void addBox(Vec3 pos, Vec3 size, int mass);
+
+
 private:
 
 	DreiBSystem* m_pDreiBSystem;
 	float m_fextraForce;
 
 	//
-	ParticleCollisionSystem* m_particleColSys;
+	//ParticleCollisionSystem* m_particleColSys;
 
 
 	Point2D m_mouse;
