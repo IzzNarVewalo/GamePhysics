@@ -20,6 +20,26 @@ void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
 	}
 }
 
+int DreiBSystem::createBall(Vec3 pos, int size, int mass, Vec3 vel)
+{
+	Ball ball;
+	ball.ballCenter = pos;
+	ball.mass = mass;
+	ball.size = size;
+	ball.velocity = vel;
+	ball.force = Vec3(0.0f);
+
+	Box boundingBox;
+	//TODO: create bounding box attached to ball
+
+	ball.boundingBox = boundingBox;
+
+	m_balls.push_back(ball);
+	++m_iNumBalls;
+
+	return m_iNumBalls - 1;
+}
+
 int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 {
 	m_iTotalMass += mass;
