@@ -41,7 +41,7 @@ void SphereSystem::addSphereToSystem()
 	Sphere newSphere;
 	newSphere.position = Vec3(0.1f * xLevel - 0.05f, 0.1f * ylevel - 0.05f, 0.1f * zLevel - 0.05f);
 	newSphere.velocity = Vec3();
-	newSphere.force = Vec3();
+	newSphere.force = Vec3(0.0f, -9.81f, 0.0f);
 	xLevel--;
 
 	if (zLevel <= -5 && xLevel <= -5) {
@@ -51,8 +51,8 @@ void SphereSystem::addSphereToSystem()
 	if (xLevel <= -5) {
 		zLevel--; xLevel = 5;
 	}
-
 		
 	spheres.push_back(newSphere);
+	
 }
 

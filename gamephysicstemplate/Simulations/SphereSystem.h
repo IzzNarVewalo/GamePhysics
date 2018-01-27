@@ -27,22 +27,21 @@ public:
 	void setPosition(int i, Vec3 pos) {
 		spheres[i].position = pos;
 	}
-
 	void setPositionX(int i, float x) {
 		spheres[i].position.x = x;
 	}
 
-	void setPositionY(int i, float x) {
-		spheres[i].position.y = x;
+	void setPositionY(int i, float y) {
+		spheres[i].position.y = y;
 	}
 
-	void setPositionZ(int i, float x) {
-		spheres[i].position.z = x;
+	void setPositionZ(int i, float z) {
+		spheres[i].position.z = z;
 	}
-
+	
 	void setVelocity(int i, Vec3 vel) {
 		spheres[i].velocity = vel;
-	}
+	}	
 	void setVelocityX(int i, float velx) {
 		spheres[i].velocity.x = velx;
 	}
@@ -52,13 +51,13 @@ public:
 	void setVelocityZ(int i, float velz) {
 		spheres[i].velocity.z = velz;
 	}
-
+	
 	void setForce(int i, Vec3 force) {
 		spheres[i].force = force;
 	}
 
 	void setForceDemo2(int i, Vec3 force, int index) {
-		uniformGrid[index][i].force = force;
+		uniformGrid[index][i]->force = force;
 	}
 
 	Vec3 getVelocity(int i) {
@@ -77,14 +76,14 @@ public:
 		spheres.pop_back();
 	}
 
-	int getNumGrid() {
-		return cubeSize * bucketSize;
+	int getCubeSize() {
+		return cubeSize;
 	}
 
 	void saveToArray(int x, int y, int z, int i) {
 		int index = x + y * 10 + z * 100;
 
-		uniformGrid[index].push_back(spheres[i]);
+		uniformGrid[index].push_back(&spheres[i]);
 
 		if (uniformGrid[index].size() == 2) {
 			colIndizes.push_back(index);
@@ -95,7 +94,7 @@ public:
 		return colIndizes;
 	}
 
-	std::vector<Sphere> getColSpheres(int index) {
+	std::vector<Sphere*> getColSpheres(int index) {
 		return uniformGrid[index];
 	}
 
@@ -115,6 +114,6 @@ private:
 	int zLevel = 5;
 
 	//uniform grid	
-	std::array<std::vector<Sphere>, cubeSize> uniformGrid;
+	std::array<std::vector<Sphere*>, cubeSize> uniformGrid;
 	std::vector<int> colIndizes;
 };

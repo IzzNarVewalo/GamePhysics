@@ -136,8 +136,6 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 	default:
 		break;
 	}
-
-	DUC->drawSphere(Vec3(-0.45f, -0.45f, -0.45f), Vec3(m_fRadius, m_fRadius, m_fRadius));
 }
 
 void SphereSystemSimulator::reset()
@@ -215,7 +213,6 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 	}
 }
 
-
 void SphereSystemSimulator::simulateTimestep(float timeStep)
 {
 	int lambda = 1100;
@@ -224,14 +221,11 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		m_pSphereSystem->addSphereToSystem();
 	}
 
-	leapfrogStep(timeStep);
-
-	//reset forces
-	for (int i = 0; i < m_iNumSpheres; i++) {
-		m_pSphereSystem->setForce(i, externalForce);
-	}
-
 	std::vector<int> tmpColIndizes;
+
+	leapfrogStep(timeStep);
+	//reset forces
+	resetForce();
 
 	switch (m_iTestCase) {
 	case 0:
@@ -294,12 +288,12 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 		//auf collision pruefen
 		for (int b = 0; b < tmpColIndizes.size(); b++) {
 
-			std::vector<Sphere> tmp = m_pSphereSystem->getColSpheres(tmpColIndizes[b]);
+			std::vector<Sphere*> tmp = m_pSphereSystem->getColSpheres(tmpColIndizes[b]);
 
 			//durch liste tmp durchiterieren
 			for (int c = 0; c < tmp.size(); c++) {
 				for (int d = 0; d < tmp.size(), c != d; d++) {
-					float posDif = norm(tmp[c].position - tmp[d].position);
+					float posDif = norm(tmp[c]->position - tmp[d]->position);
 					float radQuad = m_fRadius + m_fRadius;
 
 					//collision, naiv approach
@@ -307,7 +301,7 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 					if (posDif <= radQuad) {
 
 						float strength = m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda;
-						Vec3 directionOfForce = tmp[c].position - tmp[d].position;
+						Vec3 directionOfForce = tmp[c]->position - tmp[d]->position;
 						//einheitsvektor
 						directionOfForce /= posDif;
 
@@ -320,7 +314,6 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 			}
 			//
 		}
-
 
 		break;
 	case 2:
@@ -359,6 +352,13 @@ void SphereSystemSimulator::setupdemo1()
 	}
 
 	m_fRadius = 0.05f;
+}
+
+void SphereSystemSimulator::resetForce()
+{
+	for (int i = 0; i < m_iNumSpheres; i++) {
+		m_pSphereSystem->setForce(i, externalForce);
+	}
 }
 
 void SphereSystemSimulator::onClick(int x, int y)
