@@ -115,9 +115,16 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 
 
 		//Spheres
-		for (int i = 0; i < m_iNumSpheres; i++) {
+		for (int i = 0; i < m_iNumSpheres/2; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
+			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
+
+		}
+
+		for (int i = m_iNumSpheres / 2; i < m_iNumSpheres; i++) {
+
+			DUC->setUpLighting(Vec3(), Vec3(0, 1, 0), 2000.0f, Vec3(0, 1, 0));
 			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
 
 		}
