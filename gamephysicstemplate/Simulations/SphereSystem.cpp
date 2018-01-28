@@ -15,7 +15,15 @@ SphereSystem::SphereSystem(int i)
 		spheres.push_back(s2);
 	}
 	else {
-		int i = 1;
+		int i = 0;
+		while (i != 100) {
+			addSphereToSystem(); i++;
+		}
+
+		zLevel = 5;
+		ylevel--;
+
+		i = 0;
 		while (i != 100) {
 			addSphereToSystem(); i++;
 		}
@@ -27,21 +35,24 @@ std::vector<Sphere> SphereSystem::getSpheres()
 	return spheres;
 }
 
+
 void SphereSystem::addSphereToSystem()
 {
 	Sphere newSphere;
-	newSphere.position = Vec3(0.1f * xLevel + 0.05f, 0.1f * ylevel + 0.05f, 0.1f * zLevel + 0.05f);
+	newSphere.position = Vec3(0.1f * xLevel - 0.05f, 0.1f * ylevel - 0.05f, 0.1f * zLevel - 0.05f);
 	newSphere.velocity = Vec3();
-	newSphere.force = Vec3();
+	newSphere.force = Vec3(0.0f, -9.81f, 0.0f);
 	xLevel--;
 
-	if (zLevel < -5 && xLevel < -5) {
+	if (zLevel <= -5 && xLevel <= -5) {
 		ylevel--; zLevel = xLevel = 5;
 	}
 
-	if (xLevel < -5) {
+	if (xLevel <= -5) {
 		zLevel--; xLevel = 5;
 	}
-	
+		
 	spheres.push_back(newSphere);
+	
 }
+

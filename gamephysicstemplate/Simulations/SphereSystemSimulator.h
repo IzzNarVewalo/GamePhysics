@@ -23,9 +23,11 @@ public:
 	void notifyCaseChanged(int testCase);
 	void externalForcesCalculations(float timeElapsed); 
 	void leapfrogStep(float timeStep); 
+	void leapfrogStepDemo2(float timeStep);
 	void simulateTimestep(float timeStep);
 	void setupdemo2();
 	void setupdemo1();
+	void resetForce();
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
 
@@ -35,9 +37,11 @@ public:
 	void setVelocity(int i, Vec3 vel) {
 		m_pSphereSystem->setVelocity(i, vel);
 	}
+
 	void setPosition(int i, Vec3 pos) {
 		m_pSphereSystem->setPosition(i, pos);
 	}
+
 	int getNumberOfSpheres();
 	
 protected:

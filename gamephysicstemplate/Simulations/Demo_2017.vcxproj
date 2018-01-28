@@ -227,6 +227,7 @@
     <ClCompile Include="DreiB.cpp" />
     <ClCompile Include="DreiBSystem.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
+    <ClCompile Include="ParticleCollisionSystem.cpp" />
     <ClCompile Include="RigidBodySystem.cpp" />
     <ClCompile Include="RigidBodySystemSimulator.cpp" />
     <ClCompile Include="SphereSystem.cpp" />
@@ -241,6 +242,7 @@
     <ClInclude Include="DreiB.h" />
     <ClInclude Include="DreiBSystem.h" />
     <ClInclude Include="MassSpringSystemSimulator.h" />
+    <ClInclude Include="ParticleCollisionSystem.h" />
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="RigidBodySystemSimulator.h" />
     <ClInclude Include="Simulator.h" />

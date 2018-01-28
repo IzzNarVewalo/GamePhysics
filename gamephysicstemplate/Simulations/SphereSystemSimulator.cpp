@@ -22,7 +22,7 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_fMass = 10.0f;
 	m_fRadius = 0.05f;
 	m_fForceScaling = 0.0f;
-	m_fDamping = 5.0f;	
+	m_fDamping = 5.0f;
 	m_iKernel = 1;
 	m_iNumSpheres = 0;
 	m_pSphereSystem = nullptr;
@@ -115,9 +115,16 @@ void SphereSystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateContext
 
 
 		//Spheres
-		for (int i = 0; i < m_iNumSpheres; i++) {
+		for (int i = 0; i < m_iNumSpheres/2; i++) {
 
 			DUC->setUpLighting(Vec3(), Vec3(1, 1, 0), 2000.0f, Vec3(1, 0.5f, 0.65f));
+			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
+
+		}
+
+		for (int i = m_iNumSpheres / 2; i < m_iNumSpheres; i++) {
+
+			DUC->setUpLighting(Vec3(), Vec3(0, 1, 0), 2000.0f, Vec3(0, 1, 0));
 			DUC->drawSphere(tmp[i].position, Vec3(m_fRadius, m_fRadius, m_fRadius));
 
 		}
@@ -213,21 +220,19 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 	}
 }
 
-
 void SphereSystemSimulator::simulateTimestep(float timeStep)
 {
-	int lambda = 11;
+	int lambda = 1100;
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
 		m_pSphereSystem->addSphereToSystem();
 	}
 
-	leapfrogStep(timeStep);
+	std::vector<int> tmpColIndizes;
 
+	leapfrogStep(timeStep);
 	//reset forces
-	for (int i = 0; i < m_iNumSpheres; i++) {
-		m_pSphereSystem->setForce(i, externalForce);
-	}
+	resetForce();
 
 	switch (m_iTestCase) {
 	case 0:
@@ -248,42 +253,73 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 
 					Vec3 resForce = directionOfForce * strength;
 
-					m_pSphereSystem->setForce(i, resForce);						
+					m_pSphereSystem->setForce(i, resForce);
 					m_pSphereSystem->setForce(j, -resForce);
 				}
 			}
-
 		}
 
 		break;
-
 	case 1:
-		//hashe spheres in grid rein
-		//ich habe 1000 zellen, und schaue mir für jede kugel an, ob ihr mittelpunkt in diesem wuerfel liegt
-		
-	
+
+		//loesche liste
+		m_pSphereSystem->resetUniformGrid();
 
 		for (int i = 0; i < m_iNumSpheres; i++) {
-			std::vector<Sphere> tmpsphere = m_pSphereSystem->getSpheres();
-			Vec3 tmppos = tmpsphere[i].position;
-			Sphere* tmpgrid = m_pSphereSystem->getUniformGrid();
+			Vec3 tmppos = m_pSphereSystem->getPosition(i);
 
-			//position durch gridgoesse teilen und abhaengig davon im array speichern
-			tmppos += Vec3(0.5f, 0.5f, 0.5f);
-			tmppos /= 10.0f;
+			////////////////////////////zelle zuweisen
+			//wertebereuch zu [0,9] verschieben. koenenn aber auch ausserhalb liegen weil noch nicht gerundet
+			tmppos *= 10.0f;
+			tmppos += Vec3(4.50f, 4.50f, 4.50f);
+			//floor bzw ceiling zum ab bzw aufrunden
+			Vec3 deci = Vec3((int)(tmppos.x * 10) % 10, (int)(tmppos.y * 10) % 10, (int)(tmppos.z * 10) % 10);
 
-			m_pSphereSystem->getUniformGrid()[(int) tmppos.x + (int)tmppos.y + (int)tmppos.z] = tmpsphere[i];
-				
-			//schauen ob mehrere in selber zelle drinnen liegen
-			for (int j = 0; j < m_pSphereSystem->getNumGrid(); j++) {
-				
-				int count = 0;
-
-				//check for collision
-				/*if (tmpgrid[j] == 0) {
-
-				}*/
+			for (int a = 0; a < 3; a++) {
+				if (deci[a] > 5) {
+					deci[a] = ceilf(tmppos[a]);
+				}
+				else {
+					deci[a] = floorf(tmppos[a]);
+					if (deci[a] < 0) {
+						deci[a] = 0;
+					}
+				}
 			}
+			/////////////////////////////
+			//ins array reinspeichern
+			m_pSphereSystem->saveToArray(deci.x, deci.y, deci.z, i);
+		}
+		tmpColIndizes = m_pSphereSystem->getColIndezes();
+
+		//auf collision pruefen
+		for (int b = 0; b < tmpColIndizes.size(); b++) {
+
+			std::vector<Sphere*> tmp = m_pSphereSystem->getColSpheres(tmpColIndizes[b]);
+
+			//durch liste tmp durchiterieren
+			for (int c = 0; c < tmp.size(); c++) {
+				for (int d = 0; d < tmp.size(), c != d; d++) {
+					float posDif = norm(tmp[c]->position - tmp[d]->position);
+					float radQuad = m_fRadius + m_fRadius;
+
+					//collision, naiv approach
+					//compute force for every sphere according to f(d)
+					if (posDif <= radQuad) {
+
+						float strength = m_Kernels[m_iKernel]((posDif / 2 * radQuad)) * lambda;
+						Vec3 directionOfForce = tmp[c]->position - tmp[d]->position;
+						//einheitsvektor
+						directionOfForce /= posDif;
+
+						Vec3 resForce = directionOfForce * strength;
+
+						m_pSphereSystem->setForceDemo2(c, resForce, tmpColIndizes[b]);
+						m_pSphereSystem->setForceDemo2(d, -resForce, tmpColIndizes[b]);
+					}
+				}
+			}
+			//
 		}
 
 		break;
@@ -304,7 +340,7 @@ void SphereSystemSimulator::setupdemo2()
 	else {
 		delete m_pSphereSystem;
 		m_pSphereSystem = new SphereSystem(2);
-	}	
+	}
 
 	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 
@@ -323,6 +359,13 @@ void SphereSystemSimulator::setupdemo1()
 	}
 
 	m_fRadius = 0.05f;
+}
+
+void SphereSystemSimulator::resetForce()
+{
+	for (int i = 0; i < m_iNumSpheres; i++) {
+		m_pSphereSystem->setForce(i, externalForce);
+	}
 }
 
 void SphereSystemSimulator::onClick(int x, int y)
