@@ -79,7 +79,7 @@ public:
 	void reset();
 	void buildBoxWall(int wallSize, float widthBox, float heightBox);
 	
-	int createBall(Vec3 pos, int size, int mass, Vec3 vel);
+	int createBall(Vec3 pos, float size, int mass, Vec3 vel);
 	
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);

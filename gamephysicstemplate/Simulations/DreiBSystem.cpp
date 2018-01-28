@@ -5,6 +5,7 @@ DreiBSystem::DreiBSystem() {
 	m_iNumBalls = m_iNumBoxes = 0;
 	//wallSize, widthBox, heightBox
 	buildBoxWall(10, 0.1f, 0.05f);
+	createBall(Vec3(0, -0.25f, -0.5f), 0.05f, 5, Vec3(0, 0, 1));
 }
 
 void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
@@ -20,7 +21,7 @@ void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
 	}
 }
 
-int DreiBSystem::createBall(Vec3 pos, int size, int mass, Vec3 vel)
+int DreiBSystem::createBall(Vec3 pos, float size, int mass, Vec3 vel)
 {
 	Ball ball;
 	ball.ballCenter = pos;
@@ -29,8 +30,21 @@ int DreiBSystem::createBall(Vec3 pos, int size, int mass, Vec3 vel)
 	ball.velocity = vel;
 	ball.force = Vec3(0.0f);
 
+	//bounding box attached to ball
 	Box boundingBox;
-	//TODO: create bounding box attached to ball
+	boundingBox.m_angularMomentum = boundingBox.m_angularVelocity = Vec3(.0f);
+	boundingBox.m_boxCenter = pos;
+	boundingBox.m_boxSize = size;
+	boundingBox.m_imass = mass;
+	//calculate inertia tensor in 3D
+	float Ixx = mass * (2 * size * size);
+	float Ixy = mass * (-size * size);
+	boundingBox.m_inertiaTensor = XMMatrixSet(Ixx, Ixy, Ixy, .0f, Ixy, Ixx, Ixy, .0f, Ixy, Ixy, Ixx, .0f, .0f, .0f, .0f, 1.0f);
+	
+	TorqueChar c;
+	c.xi = Vec3(0.0f);
+	c.fi = Vec3(0.0f);
+	boundingBox.m_pointsTorque.push_back(c);
 
 	ball.boundingBox = boundingBox;
 
