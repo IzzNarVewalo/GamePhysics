@@ -57,7 +57,7 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 	else
 		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));*/
 
-	for (int i = 0; i < numTemp; i++) {
+	for (int i = 0; i < numTemp - 1; i++) {
 		/*std::cout << "factor: " << factor << endl;
 		if (red <= 1 && green <= 0) {
 			red += factor;
@@ -154,20 +154,19 @@ void DreiB::simulateTimestep(float timeStep)
 	}
 
 	std::vector<Ball> tmp = m_pDreiBSystem->getBalls();
-	num = m_pDreiBSystem->getNumBalls();
+	int numb = m_pDreiBSystem->getNumBalls();
 	//balls
-	for (int i = 0; i < num; i++) {
+	for (int i = 0; i < numb; i++) {
 		//x position
 		m_pDreiBSystem->setCentralOfMassPosition(true, i, (tmp[i].ballCenter + timeStep * tmp[i].velocity));
 		//v linear velocity
 		m_pDreiBSystem->setLinearVelocity(true, i, (tmp[i].velocity + timeStep * tmp[i].force / (m_pDreiBSystem->getTotalMass())));
 	}
 
-	/*//check for collisions
-	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < num, i != j; j++) {
+	//check for collisions
+	for (int i = 0; i < num - 1; i++) {
 
-			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(j);
+			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(55);
 			GamePhysics::Mat4 BM = m_pDreiBSystem->calcTransformMatrixOf(i);
 
 			CollisionInfo simpletest = checkCollisionSAT(AM, BM);
@@ -177,10 +176,14 @@ void DreiB::simulateTimestep(float timeStep)
 				//auf welcher flaeche welches koerpers steht die normale?
 				//wenn n positiv, dann steht es auf B, sonst auf A
 
-				if (dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld) >= 0)
+				if (dot(temp[55].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld) >= 0)
 					return;
 
-				Vec3 deltaVel = dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld);
+				if (temp[i].m_pointsTorque.empty()) {
+					m_pDreiBSystem->pushBackTorque(i, simpletest.collisionPointWorld, Vec3(2, 4, 0));
+				}
+
+				Vec3 deltaVel = dot(temp[55].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld);
 
 				//calculate impulse J
 				//they should stop flying into each other
@@ -188,21 +191,21 @@ void DreiB::simulateTimestep(float timeStep)
 				float c = 0;
 				Vec3 J = -(1 + c) * deltaVel;
 				Vec3 nenner;
-				float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
+				float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[55].m_imass;
 				Vec3 b = (cross(temp[i].m_inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
-				Vec3 a = (cross(temp[j].m_inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
+				Vec3 a = (cross(temp[55].m_inertiaTensor.transformVector(cross(temp[55].m_boxCenter, simpletest.normalWorld)), temp[55].m_boxCenter));
 				nenner = massterm + ((a + b) * simpletest.normalWorld);
 				J.safeDivide(nenner);
 
 				//velocity update
-				setVelocityOf(j, temp[j].m_linearVelocity + J * (simpletest.normalWorld / temp[j].m_imass));
+				setVelocityOf(55, temp[55].m_linearVelocity + J * (simpletest.normalWorld / temp[55].m_imass));
 				setVelocityOf(i, temp[i].m_linearVelocity - J * (simpletest.normalWorld / temp[i].m_imass));
 
-				m_pDreiBSystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
+				m_pDreiBSystem->setAngularMomentum(55, temp[55].m_angularMomentum + (cross(temp[55].m_boxCenter, J*simpletest.normalWorld)));
 				m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
-			}
+			
 		}
-	}*/
+	}
 }
 
 void DreiB::notifyCaseChanged(int testCase)

@@ -52,6 +52,13 @@ public:
 		m_iNumBalls = num;
 	}
 
+	void pushBackTorque(int i, Vec3 torque, Vec3 force) {
+		TorqueChar t;
+		t.fi = force;
+		t.xi = torque;
+		m_boxWall[i].m_pointsTorque.push_back(t);
+	}
+
 	void setTotalTorque(int i, Vec3 torque) {
 		m_boxWall[i].m_totalTorque = torque;
 	}

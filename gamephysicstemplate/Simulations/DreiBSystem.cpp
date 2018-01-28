@@ -37,19 +37,16 @@ int DreiBSystem::createBall(Vec3 pos, float size, int mass, Vec3 vel)
 	boundingBox.m_boxSize = size;
 	boundingBox.m_imass = mass;
 	boundingBox.m_orientation = Quat(0, 0, 0);
-	boundingBox.m_linearVelocity = Vec3(0,0,1);
+	boundingBox.m_linearVelocity = Vec3(0, 0, 1);
 	//calculate inertia tensor in 3D
 	float Ixx = mass * (2 * size * size);
 	float Ixy = mass * (-size * size);
 	boundingBox.m_inertiaTensor = XMMatrixSet(Ixx, Ixy, Ixy, .0f, Ixy, Ixx, Ixy, .0f, Ixy, Ixy, Ixx, .0f, .0f, .0f, .0f, 1.0f);
 
-	TorqueChar c;
-	c.xi = Vec3(0.0f);
-	c.fi = Vec3(0.0f);
-	boundingBox.m_pointsTorque.push_back(c);
-
 	ball.boundingBox = boundingBox;
 
+	m_boxWall.push_back(boundingBox);
+	++m_iNumBoxes;
 	m_balls.push_back(ball);
 	++m_iNumBalls;
 
@@ -82,11 +79,6 @@ int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 	box.m_angularVelocity = Vec3(.0f);
 
 	box.m_orientation = Quat(0, 0, 0);
-
-	TorqueChar c;
-	c.xi = Vec3(.0f);
-	c.fi = Vec3(.0f);
-	box.m_pointsTorque.push_back(c);
 
 	m_boxWall.push_back(box);
 	++m_iNumBoxes;
