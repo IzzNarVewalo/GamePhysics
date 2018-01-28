@@ -1,7 +1,7 @@
 #include "DreiBSystem.h"
 
 DreiBSystem::DreiBSystem() {
-	
+
 	m_iNumBalls = m_iNumBoxes = 0;
 	//wallSize, widthBox, heightBox
 	buildBoxWall(10, 0.1f, 0.05f);
@@ -36,11 +36,13 @@ int DreiBSystem::createBall(Vec3 pos, float size, int mass, Vec3 vel)
 	boundingBox.m_boxCenter = pos;
 	boundingBox.m_boxSize = size;
 	boundingBox.m_imass = mass;
+	boundingBox.m_orientation = Quat(0, 0, 0);
+	boundingBox.m_linearVelocity = Vec3(0,0,1);
 	//calculate inertia tensor in 3D
 	float Ixx = mass * (2 * size * size);
 	float Ixy = mass * (-size * size);
 	boundingBox.m_inertiaTensor = XMMatrixSet(Ixx, Ixy, Ixy, .0f, Ixy, Ixx, Ixy, .0f, Ixy, Ixy, Ixx, .0f, .0f, .0f, .0f, 1.0f);
-	
+
 	TorqueChar c;
 	c.xi = Vec3(0.0f);
 	c.fi = Vec3(0.0f);
@@ -79,10 +81,11 @@ int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 	//angular velocity w
 	box.m_angularVelocity = Vec3(.0f);
 
-	TorqueChar c;
+	box.m_orientation = Quat(0, 0, 0);
 
-	c.xi = Vec3(0.3f, 0.5f, 0.25f);
-	c.fi = Vec3(1, 1, 0);
+	TorqueChar c;
+	c.xi = Vec3(.0f);
+	c.fi = Vec3(.0f);
 	box.m_pointsTorque.push_back(c);
 
 	m_boxWall.push_back(box);

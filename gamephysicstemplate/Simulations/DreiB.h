@@ -3,6 +3,7 @@
 #define DREIB_h
 
 #include "DreiBSystem.h"
+#include "collisionDetect.h"
 #include "ParticleCollisionSystem.h"
 
 //baukloetzchen und ball
@@ -48,6 +49,9 @@ public:
 
 	void addBox(Vec3 pos, Vec3 size, int mass);
 
+	void setOrientationOf(int i, Quat orient);
+
+	void setVelocityOf(int i, Vec3 vel);
 
 private:
 

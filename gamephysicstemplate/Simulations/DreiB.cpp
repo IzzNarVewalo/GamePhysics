@@ -22,7 +22,7 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 
 	//int tmpnumballs = m_pDreiBSystem->getNumBalls();
 	int tmpnumballs = 0;
-	DUC->update(0.1f);	
+	DUC->update(0.1f);
 	switch (m_iTestCase)
 	{
 	case 0:
@@ -32,12 +32,12 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 		break;
 	case 1:
 		//baelleanzahl aendern
-		
+
 		//TwAddVarRW(DUC->g_pTweakBar, "number balls", TW_TYPE_INT32, &tmpnumballs, "min=1");
 		//m_pDreiBSystem->setNumBalls(tmpnumballs);
 		//evtl kleidungsstuek bewerfen-> dann noch zwischen verschiedenen objekten und anzahl von baellen unterscheiden, a
 		//nstatt bei demos es z uunterscheiden
-		
+
 	case 2:
 		break;
 	default:break;
@@ -77,7 +77,7 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 		if (i % 3 == 0) {
 			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
 		}
-		else if (i % 2 == 0){
+		else if (i % 2 == 0) {
 			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.2f, 0.8f, 0.5f));
 		}
 		else {
@@ -102,7 +102,6 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 
 void DreiB::externalForcesCalculations(float timeElapsed)
 {
-	/*
 	//iteriere durch boxen, baelle brauchen keine torques (?)
 	std::vector<Box> temp = m_pDreiBSystem->getBoxWalls();
 	Vec3 tempTotalTorque;
@@ -125,12 +124,85 @@ void DreiB::externalForcesCalculations(float timeElapsed)
 		m_pDreiBSystem->setTotalTorque(i, tempTotalTorque);
 		//set total Force
 		m_pDreiBSystem->setTotalForce(i, tempTotalForce * m_fextraForce);
-	}*/
+	}
 }
-//benutzen Midpoint, wei stabil
+
 void DreiB::simulateTimestep(float timeStep)
 {
+	std::vector<Box> temp = m_pDreiBSystem->getBoxWalls();
+	int num = m_pDreiBSystem->getNumBoxes();
 
+	//wall
+	for (int i = 0; i < num; i++) {
+		//x position
+		m_pDreiBSystem->setCentralOfMassPosition(false, i, (temp[i].m_boxCenter + timeStep * temp[i].m_linearVelocity));
+		//v linear velocity
+		m_pDreiBSystem->setLinearVelocity(false, i, (temp[i].m_linearVelocity + timeStep * temp[i].m_totalForce / (m_pDreiBSystem->getTotalMass())));
+		//r see page 58
+		Quat orient = temp[i].m_orientation + (timeStep / 2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
+		setOrientationOf(i, (orient.unit()));
+		//L angular momentum page 56		
+		m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum + timeStep * temp[i].m_totalTorque);
+
+		//w angular velocity
+		Mat4 tr = m_pDreiBSystem->getRotMatOf(i);
+		tr.transpose();
+
+		//calculate the inverse inertia tensor
+		temp[i].m_inertiaTensor = m_pDreiBSystem->getRotMatOf(i) * temp[i].m_inertiaTensor * tr;
+		m_pDreiBSystem->setAngularVelocity(i, temp[i].m_inertiaTensor.transformVector(temp[i].m_angularMomentum));
+	}
+
+	std::vector<Ball> tmp = m_pDreiBSystem->getBalls();
+	num = m_pDreiBSystem->getNumBalls();
+	//balls
+	for (int i = 0; i < num; i++) {
+		//x position
+		m_pDreiBSystem->setCentralOfMassPosition(true, i, (tmp[i].ballCenter + timeStep * tmp[i].velocity));
+		//v linear velocity
+		m_pDreiBSystem->setLinearVelocity(true, i, (tmp[i].velocity + timeStep * tmp[i].force / (m_pDreiBSystem->getTotalMass())));
+	}
+
+	/*//check for collisions
+	for (int i = 0; i < num; i++) {
+		for (int j = 0; j < num, i != j; j++) {
+
+			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(j);
+			GamePhysics::Mat4 BM = m_pDreiBSystem->calcTransformMatrixOf(i);
+
+			CollisionInfo simpletest = checkCollisionSAT(AM, BM);
+
+			if (simpletest.isValid) {
+				std::printf("Collision\n");
+				//auf welcher flaeche welches koerpers steht die normale?
+				//wenn n positiv, dann steht es auf B, sonst auf A
+
+				if (dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld) >= 0)
+					return;
+
+				Vec3 deltaVel = dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld);
+
+				//calculate impulse J
+				//they should stop flying into each other
+				//bouncies: c=1 fully elasitc c=0 plastic
+				float c = 0;
+				Vec3 J = -(1 + c) * deltaVel;
+				Vec3 nenner;
+				float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
+				Vec3 b = (cross(temp[i].m_inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+				Vec3 a = (cross(temp[j].m_inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
+				nenner = massterm + ((a + b) * simpletest.normalWorld);
+				J.safeDivide(nenner);
+
+				//velocity update
+				setVelocityOf(j, temp[j].m_linearVelocity + J * (simpletest.normalWorld / temp[j].m_imass));
+				setVelocityOf(i, temp[i].m_linearVelocity - J * (simpletest.normalWorld / temp[i].m_imass));
+
+				m_pDreiBSystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
+				m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
+			}
+		}
+	}*/
 }
 
 void DreiB::notifyCaseChanged(int testCase)
@@ -154,5 +226,15 @@ void DreiB::notifyCaseChanged(int testCase)
 void DreiB::addBox(Vec3 position, Vec3 size, int mass)
 {
 	m_pDreiBSystem->addBox(position, size, mass);
+}
+
+void DreiB::setOrientationOf(int i, Quat orient)
+{
+	m_pDreiBSystem->setRotation(i, orient);
+}
+
+void DreiB::setVelocityOf(int i, Vec3 vel)
+{
+	m_pDreiBSystem->setLinearVelocity(false, i, vel);
 }
 
