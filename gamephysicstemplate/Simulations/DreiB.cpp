@@ -57,6 +57,12 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 		DUC->drawRigidBody(m_pDreiBSystem->calcTransformMatrixOf(i));
 	}
 
+	//balls
+	for (int i = 0; i < m_pDreiBSystem->getNumBalls(); i++) {
+		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 0), 1000.0f, Vec3(1.0f, 0.0f, 0.0f));
+		DUC->drawSphere(m_pDreiBSystem->getBalls()[i].ballCenter, m_pDreiBSystem->getBalls()[i].size);
+	}
+
 	/*for (int i = 0; i < m_particleColSys->getParticles().size(); i++) {
 		DUC->setUpLighting(Vec3(1, 0, 0), Vec3(1, 0, 0), 22.0f, Vec3(1, 1, 0));
 		DUC->drawSphere(m_particleColSys->getParticles()[i].pos, m_particleColSys->getParticles()[i].size);
