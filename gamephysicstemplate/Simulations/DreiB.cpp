@@ -47,13 +47,44 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
 	int numTemp = m_pDreiBSystem->getNumBoxes();
+	float red = 0;
+	float green = 0;
+	float blue = 0;
+	float factor = 1.0f / numTemp * 4;
 
-	if (m_iTestCase == 0)
+	/*if (m_iTestCase == 0)
 		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
 	else
-		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));
+		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));*/
 
 	for (int i = 0; i < numTemp; i++) {
+		/*std::cout << "factor: " << factor << endl;
+		if (red <= 1 && green <= 0) {
+			red += factor;
+
+			std::cout << "erstes if" << red << endl;
+		}
+		else if (green <= 1){
+			green += factor;
+			red -= factor;
+			std::cout << "zweites if !\n";
+		}
+		else {
+			blue += factor;
+			green -= factor;
+		}*/
+
+		if (i % 3 == 0) {
+			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
+		}
+		else if (i % 2 == 0){
+			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.2f, 0.8f, 0.5f));
+		}
+		else {
+			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.5f, 0.2f, 0.8f));
+		}
+
+		//DUC->setUpLighting(Vec3(0, 0, 0), Vec3(0.5f, 0.5f, 0.5f), 2000.0f, Vec3(red, green, blue));
 		DUC->drawRigidBody(m_pDreiBSystem->calcTransformMatrixOf(i));
 	}
 

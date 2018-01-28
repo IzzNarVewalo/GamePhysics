@@ -1,9 +1,9 @@
 #include "DreiBSystem.h"
 
 DreiBSystem::DreiBSystem() {
-	//wallSize, widthBox, heightBox
+	
 	m_iNumBalls = m_iNumBoxes = 0;
-
+	//wallSize, widthBox, heightBox
 	buildBoxWall(10, 0.1f, 0.05f);
 }
 
