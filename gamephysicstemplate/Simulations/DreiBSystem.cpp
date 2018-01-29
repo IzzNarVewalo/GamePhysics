@@ -5,7 +5,14 @@ DreiBSystem::DreiBSystem() {
 	m_iNumBalls = m_iNumBoxes = 0;
 	//wallSize, widthBox, heightBox
 	buildBoxWall(10, 0.1f, 0.05f);
-	createBall(Vec3(0, -0.25f, -0.5f), 0.05f, 5, Vec3(0, 0, 1));
+	createBall(Vec3(0, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0,8));
+	createBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 9));
+
+	Spring spring;
+	spring.initialLength = 0.7f;
+	spring.point1 = createBall(Vec3(0, -0.3f, 0.2f), 0.05f, 3, Vec3(1, 1, -2.0f));
+	spring.point2 = createBall(Vec3 (0, 0.5, 0), 0.05f, 10, Vec3(.0f));
+	m_spring = spring;
 }
 
 void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
@@ -15,7 +22,7 @@ void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
 
 	for (int i = 0; i < wallSize; i++) {
 		for (int j = 0; j < wallSize - i; j++) {
-			addBox(Vec3(xPosInit + j*widthBox + offset, yPosInit + i*heightBox, .0f), Vec3(widthBox - 0.02f, heightBox, 0.1f), 1);
+			addBox(Vec3(xPosInit + j*widthBox + offset, yPosInit + i*heightBox, (j%2)*0.05f), Vec3(widthBox - 0.02f, heightBox, 0.1f), 10);
 		}
 		offset += widthBox / 2;
 	}
@@ -37,7 +44,7 @@ int DreiBSystem::createBall(Vec3 pos, float size, int mass, Vec3 vel)
 	boundingBox.m_boxSize = size;
 	boundingBox.m_imass = mass;
 	boundingBox.m_orientation = Quat(0, 0, 0);
-	boundingBox.m_linearVelocity = Vec3(0, 0, 1);
+	boundingBox.m_linearVelocity = vel;
 	//calculate inertia tensor in 3D
 	float Ixx = mass * (2 * size * size);
 	float Ixy = mass * (-size * size);

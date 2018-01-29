@@ -1,5 +1,10 @@
 #pragma once
 #include "Simulator.h"
+
+struct Spring {
+	float initialLength, currentLength;
+	int point1, point2;
+};
 //for torque
 struct TorqueChar {
 	//page 22
@@ -81,17 +86,20 @@ public:
 		m_boxWall[i].m_angularMomentum = L;
 	}
 
+
+
 	//fuegt kloetzchen zum turm hinzu
 	int addBox(Vec3 position, Vec3 size, int mass);
 	void reset();
 	void buildBoxWall(int wallSize, float widthBox, float heightBox);
-	
+
 	int createBall(Vec3 pos, float size, int mass, Vec3 vel);
-	
+
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);
 	Mat4 getScaleMatOf(int i);
 	Mat4 calcTransformMatrixOf(int i);
+	Spring m_spring;
 
 private:
 
