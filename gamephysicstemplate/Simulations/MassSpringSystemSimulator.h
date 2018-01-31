@@ -22,14 +22,6 @@ class MassSpringSystemSimulator:public Simulator{
 public:
 	// Construtors
 	MassSpringSystemSimulator();
-
-	void setupDemo1();
-
-	void resetDemo1();
-
-	void setuoTwoSprings();
-
-	void setupDemo4();
 	
 	// UI Functions
 	const char * getTestCasesStr();
@@ -57,6 +49,10 @@ public:
 	Vec3 getPositionOfMassPoint(int index);
 	Vec3 getVelocityOfMassPoint(int index);
 	void applyExternalForce(Vec3 force);
+
+	void setupSimpleDemo();
+	void resetDemo();
+	void setupComplexDemo();
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
