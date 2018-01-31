@@ -224,7 +224,6 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Demo2.cpp" />
     <ClCompile Include="DreiB.cpp" />
     <ClCompile Include="DreiBSystem.cpp" />
     <ClCompile Include="MassSpringSystemSimulator.cpp" />
@@ -239,7 +238,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="collisionDetect.h" />
-    <ClInclude Include="Demo2.h" />
     <ClInclude Include="DrawingUtilitiesClass.h" />
     <ClInclude Include="DreiB.h" />
     <ClInclude Include="DreiBSystem.h" />

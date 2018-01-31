@@ -28,7 +28,6 @@ SphereSystemSimulator::SphereSystemSimulator()
 	m_pSphereSystem = nullptr;
 	m_iIntegrator = MIDPOINT; //0 midpoint, 1 leap frog
 
-	//if gravity on, accelerate in -y-direction
 	for (int i = 0; i < m_iNumSpheres; i++) {
 		m_pSphereSystem->setForce(i, externalForce);
 	}
@@ -181,6 +180,7 @@ void SphereSystemSimulator::externalForcesCalculations(float timeElapsed)
 {
 	//gravity
 	//externalForce = Vec3(0, -9.81f, 0);
+
 }
 
 void SphereSystemSimulator::leapfrogStep(float timeStep)
@@ -193,29 +193,29 @@ void SphereSystemSimulator::leapfrogStep(float timeStep)
 		Vec3 veltmp = m_pSphereSystem->getVelocity(i);
 
 		//bounce when hit the floor & velocity damping
-		if (m_pSphereSystem->getPosition(i).y <= -0.5f || m_pSphereSystem->getPosition(i).y >= 0.5f) {
+		if (m_pSphereSystem->getPosition(i).y < (-0.5f + m_fRadius)|| m_pSphereSystem->getPosition(i).y > (0.5f - m_fRadius)) {
 			m_pSphereSystem->setVelocityY(i, veltmp.y *= (-0.99f));
-			if (m_pSphereSystem->getPosition(i).y <= -0.5f)
-				m_pSphereSystem->setPositionY(i, -0.5f);
+			if (m_pSphereSystem->getPosition(i).y <= (-0.5f + m_fRadius))
+				m_pSphereSystem->setPositionY(i, (-0.5f + m_fRadius));
 			else
-				m_pSphereSystem->setPositionY(i, 0.5f);
+				m_pSphereSystem->setPositionY(i, (0.5f - m_fRadius));
 		}
 
 		//bounce when hit the walls & velocity damping
-		if ((m_pSphereSystem->getPosition(i).x <= -0.5f || m_pSphereSystem->getPosition(i).x >= 0.5f)) {
+		if ((m_pSphereSystem->getPosition(i).x < (-0.5f + m_fRadius) || m_pSphereSystem->getPosition(i).x > (0.5f - m_fRadius))) {
 			m_pSphereSystem->setVelocityX(i, veltmp.x *= (-0.90f));
-			if (m_pSphereSystem->getPosition(i).x <= -0.5f)
-				m_pSphereSystem->setPositionX(i, -0.5f);
+			if (m_pSphereSystem->getPosition(i).x <= (-0.5f + m_fRadius))
+				m_pSphereSystem->setPositionX(i, (-0.5f + m_fRadius));
 			else
-				m_pSphereSystem->setPositionX(i, 0.5f);
+				m_pSphereSystem->setPositionX(i, (0.5f - m_fRadius));
 		}
 
-		if ((m_pSphereSystem->getPosition(i).z <= -0.5f || m_pSphereSystem->getPosition(i).z >= 0.5f)) {
+		if ((m_pSphereSystem->getPosition(i).z < (-0.5f + m_fRadius) || m_pSphereSystem->getPosition(i).z > (0.5f - m_fRadius))) {
 			m_pSphereSystem->setVelocityZ(i, veltmp.z *= (-0.90f));
-			if (m_pSphereSystem->getPosition(i).z <= -0.5f)
-				m_pSphereSystem->setPositionZ(i, -0.5f);
+			if (m_pSphereSystem->getPosition(i).z <= (-0.5f + m_fRadius))
+				m_pSphereSystem->setPositionZ(i, (-0.5f + m_fRadius));
 			else
-				m_pSphereSystem->setPositionZ(i, 0.5f);
+				m_pSphereSystem->setPositionZ(i, (0.5f - m_fRadius));
 		}
 	}
 }
@@ -225,7 +225,7 @@ void SphereSystemSimulator::simulateTimestep(float timeStep)
 	int lambda = 1100;
 	//wenn geadded, adden
 	if (m_iNumSpheres != m_pSphereSystem->getSpheres().size()) {
-		m_pSphereSystem->addSphereToSystem();
+		m_pSphereSystem->addSphereAreaToSystem(m_fRadius);
 	}
 
 	std::vector<int> tmpColIndizes;
@@ -344,7 +344,7 @@ void SphereSystemSimulator::setupdemo2()
 
 	m_iNumSpheres = m_pSphereSystem->getSpheres().size();
 
-	m_fRadius = 0.05f;
+	m_fRadius = 0.045f;
 }
 
 void SphereSystemSimulator::setupdemo1()

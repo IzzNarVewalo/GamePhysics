@@ -2,6 +2,9 @@
 
 SphereSystem::SphereSystem(int i)
 {
+	numberSpheresAtLine = 9;
+	ylevel = 0.5f - ((1.0f / (float)numberSpheresAtLine) / 2) + 0.045f;
+
 	if (i == 1) {
 		Sphere s1;
 		s1.position = Vec3(-0.5f, -0.5f, 0.0f);
@@ -15,18 +18,8 @@ SphereSystem::SphereSystem(int i)
 		spheres.push_back(s2);
 	}
 	else {
-		int i = 0;
-		while (i != 100) {
-			addSphereToSystem(); i++;
-		}
-
-		zLevel = 5;
-		ylevel--;
-
-		i = 0;
-		while (i != 100) {
-			addSphereToSystem(); i++;
-		}
+		addSphereAreaToSystem(0.045f);
+		addSphereAreaToSystem(0.045f);
 	}
 }
 
@@ -36,23 +29,27 @@ std::vector<Sphere> SphereSystem::getSpheres()
 }
 
 
-void SphereSystem::addSphereToSystem()
+void SphereSystem::addSphereAreaToSystem(float radius)
 {
+	//jede kugel bekommt (1/numberSpheresAtLine) platz
+	float space = 1.0f / (float)numberSpheresAtLine;
+
+	float xDist = -0.5f + space / 2 - radius;
+	float zDist = -0.5f + space / 2 - radius;
+
 	Sphere newSphere;
-	newSphere.position = Vec3(0.1f * xLevel - 0.05f, 0.1f * ylevel - 0.05f, 0.1f * zLevel - 0.05f);
-	newSphere.velocity = Vec3();
-	newSphere.force = Vec3(0.0f, -9.81f, 0.0f);
-	xLevel--;
+	for (int x = 0; x < numberSpheresAtLine; x++) {
+		for (int z = 0; z < numberSpheresAtLine; z++) {
+			newSphere.position = Vec3(xDist + radius, ylevel - radius, zDist + radius);
+			newSphere.velocity = Vec3(.0f);
+			newSphere.force = Vec3(.0f);
+			spheres.push_back(newSphere);
 
-	if (zLevel <= -5 && xLevel <= -5) {
-		ylevel--; zLevel = xLevel = 5;
+			zDist += space;
+		}
+		xDist += space;
+		zDist = -0.5f;
 	}
-
-	if (xLevel <= -5) {
-		zLevel--; xLevel = 5;
-	}
-		
-	spheres.push_back(newSphere);
-	
+	zDist = xDist = -0.5f;
+	ylevel -= space;
 }
-

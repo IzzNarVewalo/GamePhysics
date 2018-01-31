@@ -23,7 +23,7 @@ public:
 	std::vector<Sphere> getSpheres();
 
 	//fuegt neue kugel in naechstem level hinzu
-	void addSphereToSystem();
+	void addSphereAreaToSystem(float radius);
 	void setPosition(int i, Vec3 pos) {
 		spheres[i].position = pos;
 	}
@@ -107,11 +107,9 @@ public:
 private:
 	//Attributes
 	std::vector<Sphere> spheres; // all spheres in a system
-	//skalierungsfaktor zum hinzufuegen von neuen kugeln (auf y-achse)
-	int ylevel = 5;
-	//skalierungsfaktor zum hinzufuegen von neuen kugeln (auf x-achse)
-	int xLevel = 5;
-	int zLevel = 5;
+
+	int numberSpheresAtLine;
+	float ylevel;
 
 	//uniform grid	
 	std::array<std::vector<Sphere*>, cubeSize> uniformGrid;
