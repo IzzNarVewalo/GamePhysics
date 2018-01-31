@@ -39,13 +39,6 @@ public:
 		m_trackmouse.y = y;
 	};
 
-
-	void setNumBalls(int num) {
-		m_pDreiBSystem->setNumBalls(num);
-	}
-
-	void incNumBalls();
-
 	void addBox(Vec3 pos, Vec3 size, int mass);
 
 	void setOrientationOf(int i, Quat orient);
@@ -60,12 +53,7 @@ public:
 private:
 
 	DreiBSystem* m_pDreiBSystem;
-
-	float m_fextraForce;
-
-	//
-	//ParticleCollisionSystem* m_particleColSys;
-
+	Vec3 m_fextraForce;
 
 	Point2D m_mouse;
 	Point2D m_trackmouse;
