@@ -57,7 +57,7 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 	else
 		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));*/
 
-	for (int i = 0; i < numTemp - 3; i++) {
+	for (int i = 0; i < numTemp - 4; i++) {
 		/*std::cout << "factor: " << factor << endl;
 		if (red <= 1 && green <= 0) {
 			red += factor;
@@ -140,7 +140,7 @@ void DreiB::simulateTimestep(float timeStep)
 	for (int i = 0; i < num; i++) {
 
 		if (temp[i].m_linearVelocity.x != (.0f)) {
-			temp[i].m_totalForce.y += -9.81f;
+			temp[i].m_totalForce.y += -20.0f;
 		}
 
 		//x position
@@ -178,7 +178,7 @@ void DreiB::simulateTimestep(float timeStep)
 
 	//spring
 	//accelerate in -y-direction
-	tmp[2].force = Vec3(0, -9.81f, 0);
+	tmp[2].force = Vec3(0, -20.0f, 0);
 
 	//compute internal force for every point; acceleration depends only on elastic forces
 	for (int i = 2; i < 4; i++) {
@@ -254,6 +254,7 @@ void DreiB::notifyCaseChanged(int testCase)
 	switch (m_iTestCase) {
 	case 0:
 		std::cout << "Holzkloetzchenspiel !\n";
+		resetScene();
 		break;
 	case 1:
 		std::cout << "2.0Holzkloetzchenspiel !\n";

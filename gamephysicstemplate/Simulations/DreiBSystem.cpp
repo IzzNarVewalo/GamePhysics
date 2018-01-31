@@ -2,17 +2,7 @@
 
 DreiBSystem::DreiBSystem() {
 
-	m_iNumBalls = m_iNumBoxes = 0;
-	//wallSize, widthBox, heightBox
-	buildBoxWall(10, 0.1f, 0.05f);
-	createBall(Vec3(0, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0,8));
-	createBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 9));
-
-	Spring spring;
-	spring.initialLength = 0.7f;
-	spring.point1 = createBall(Vec3(0, -0.3f, 0.2f), 0.05f, 3, Vec3(1, 1, -2.0f));
-	spring.point2 = createBall(Vec3 (0, 0.5, 0), 0.05f, 10, Vec3(.0f));
-	m_spring = spring;
+	resetScene();
 }
 
 void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
@@ -43,7 +33,7 @@ int DreiBSystem::createBall(Vec3 pos, float size, int mass, Vec3 vel)
 	boundingBox.m_boxCenter = pos;
 	boundingBox.m_boxSize = size;
 	boundingBox.m_imass = mass;
-	boundingBox.m_orientation = Quat(0, 0, 0);
+	boundingBox.m_orientation = Quat(0, M_PI_4, M_PI_4);
 	boundingBox.m_linearVelocity = vel;
 	//calculate inertia tensor in 3D
 	float Ixx = mass * (2 * size * size);
@@ -120,4 +110,23 @@ Mat4 DreiBSystem::getScaleMatOf(int i)
 Mat4 DreiBSystem::calcTransformMatrixOf(int i)
 {
 	return getScaleMatOf(i) * getRotMatOf(i) * getTranslatMatOf(i);
+}
+
+void DreiBSystem::resetScene()
+{
+	//delete everything
+	m_iNumBalls = m_iNumBoxes = 0;
+	m_boxWall.clear();
+	m_balls.clear();
+
+	//make new scene
+	buildBoxWall(10, 0.1f, 0.05f);
+	createBall(Vec3(0, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 8));
+	createBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 9));
+
+	Spring spring;
+	spring.initialLength = 0.5f;
+	spring.point1 = createBall(Vec3(0, -0.3f, 0.2f), 0.05f, 3, Vec3(0.5f, 0.5f, -2.0f));
+	spring.point2 = createBall(Vec3(0, 0.5, 0), 0.05f, 10, Vec3(.0f));
+	m_spring = spring;
 }

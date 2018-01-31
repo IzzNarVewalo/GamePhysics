@@ -53,6 +53,10 @@ public:
 
 	void setVelocityOf(int i, Vec3 vel);
 
+	void resetScene() {
+		m_pDreiBSystem->resetScene();
+	}
+
 private:
 
 	DreiBSystem* m_pDreiBSystem;

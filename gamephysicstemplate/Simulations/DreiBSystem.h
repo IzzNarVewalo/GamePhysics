@@ -100,6 +100,7 @@ public:
 	Mat4 getScaleMatOf(int i);
 	Mat4 calcTransformMatrixOf(int i);
 	Spring m_spring;
+	void resetScene();
 
 private:
 
