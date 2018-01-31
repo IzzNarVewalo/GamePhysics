@@ -246,10 +246,10 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 		{
 			//xTilde
 			tmpPoints[i].position = m_points[i].position + (timeStep / 2) * m_points[i].velocity;
-
+			
 			//vel at xTilde
 			tmpPoints[i].velocity = m_points[i].velocity + (timeStep / 2) * m_points[i].force / m_fMass;
-
+			
 			//clear forces
 			applyExternalForce(m_externalForce);
 
@@ -267,11 +267,12 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 		Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
 
 		Vec3 force = tmp * (tmpPoints[m_springs[i].point1].position - tmpPoints[m_springs[i].point2].position) / (m_springs[i].currentLength);
-		tmpPoints[m_springs[i].point1].force -= force;
+		m_points[m_springs[i].point1].force -= force;
 
 		force = tmp * (tmpPoints[m_springs[i].point2].position - tmpPoints[m_springs[i].point1].position) / (m_springs[i].currentLength);
-		tmpPoints[m_springs[i].point2].force -= force;
+		m_points[m_springs[i].point2].force -= force;
 	}
+
 
 	//new velocity
 	for (int i = 0; i < m_inumPoints; i++)
@@ -288,7 +289,7 @@ void MassSpringSystemSimulator::midpointStep(float timeStep)
 			////////////
 
 			//divide the force by mass of the point to get the acceleration 
-			m_points[i].velocity = m_points[i].velocity + timeStep * tmpPoints[i].force / m_fMass;
+			m_points[i].velocity = m_points[i].velocity + timeStep * m_points[i].force / m_fMass;			
 		}
 	}
 
