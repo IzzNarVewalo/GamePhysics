@@ -29,11 +29,11 @@ struct Ball {
 	Box boundingBox;
 };
 
+
 class DreiBSystem
 {
 public:
 	DreiBSystem();
-	~DreiBSystem() {};
 
 	//Getter & Setter
 	std::vector<Box> getBoxWalls() {
@@ -111,3 +111,4 @@ private:
 	int m_iNumBoxes, m_iNumBalls;
 
 };
+

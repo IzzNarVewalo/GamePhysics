@@ -1,4 +1,4 @@
-#pragma once
+
 #ifndef DREIB_h
 #define DREIB_h
 
@@ -9,6 +9,12 @@
 //baukloetzchen und ball
 //simulator
 class DreiB :public Simulator {
+
+#include "DreiBSystem.h"
+
+//baukloetzchen und ball
+//simulator
+class DreiB:public Simulator{
 
 public:
 	DreiB();
@@ -57,9 +63,11 @@ public:
 		m_pDreiBSystem->resetScene();
 	}
 
+
 private:
 
 	DreiBSystem* m_pDreiBSystem;
+
 	float m_fextraForce;
 
 	//
