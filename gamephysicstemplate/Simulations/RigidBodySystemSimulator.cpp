@@ -1,20 +1,18 @@
 #include "RigidBodySystemSimulator.h"
 #include "collisionDetect.h"
 
-int j = -1;
+int prevTestCase = -1;
 float m_fextraForce = 1;
+boolean interaction = false;
 
 RigidBodySystemSimulator::RigidBodySystemSimulator()
 {
+	//Demo1
 	m_pRigidBodySystem = new RigidBodySystem();
 	m_iTestCase = 0;
 	first = second = true;
 
-	//fuer demo 1
-	addRigidBody(Vec3(.0f, .0f, .0f), Vec3(1.0f, 0.6f, 0.5f), 2);
-	setOrientationOf(0, Quat(0, 0, M_PI_2));
-
-	j = -1;
+	prevTestCase = -1;
 }
 
 const char * RigidBodySystemSimulator::getTestCasesStr()
@@ -58,46 +56,47 @@ void RigidBodySystemSimulator::drawFrame(ID3D11DeviceContext * pd3dImmediateCont
 
 void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 {
-	int i = testCase;
+	m_iTestCase = testCase;
 	TorqueChar c;
-	switch (i) {
-	case 0: cout << "demo 1!\n";
-		m_fextraForce = 1.0f;
-		m_iTestCase = 0;
-		if (i != j)
-		{
-			m_pRigidBodySystem->reset3();
-			m_pRigidBodySystem->reset2(i);
-		}
-		first = true;
-		break;
-	case 1: cout << "demo2!\n";
-		m_iTestCase = 1;
-		if (i != j) {
-			m_pRigidBodySystem->reset3();
-			m_pRigidBodySystem->reset2(i);
-			m_fextraForce = 1.0f;
-		}
-		break;
 
-	case 2: cout << "demo3!\n";
-		m_iTestCase = 2;
-		//loesche alles
-		if (i != j) {
-			m_pRigidBodySystem->reset3();
+	switch (m_iTestCase) {
+	case 0:
+		cout << "demo " << m_iTestCase + 1 << "!\n";
+		first = true;
+
+	case 1:
+		if (testCase != prevTestCase) {
+			cleanScene();
+			setupDemoOneRigidbody();
 		}
+		else {
+			m_pRigidBodySystem->setBoxCenterToZero();
+		}
+		break;
+	case 2:
+		cout << "demo 3!\n";
+
+		//loesche alles
+		cleanScene();
+
 		//erstelle neues setup mit zwei koerpern
 		addRigidBody(Vec3(0.5f, 0.5f, 0.25f), Vec3(0.5f, 0.6f, 0.5f), 1);
 		addRigidBody(Vec3(-0.5f, -0.5f, 0.0f), Vec3(0.5f, 0.6f, 0.8f), 3);
 
 		setOrientationOf(0, Quat(M_PI_2, 0, M_PI_2));
 		setOrientationOf(1, Quat(M_PI_2, M_PI_4, 0));
+
+		m_pRigidBodySystem->addRandomTorquesTo(0);
+		m_pRigidBodySystem->addRandomTorquesTo(1);
+
 		break;
-	case 3: cout << "demo4!\n";
+	case 3:
+		cout << "demo 4!\n";
+
 		//loesche szene
-		if (i != j) {
-			m_pRigidBodySystem->reset3();
-		}
+		cleanScene();
+		interaction = true;
+
 		//erstelle neues setup mit vier rigidbodies
 		addRigidBody(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.3f, 0.4f, 0.2f), 1);
 		addRigidBody(Vec3(-0.3f, -0.3f, -0.3f), Vec3(0.2f, 0.4f, 0.2f), 7);
@@ -109,18 +108,20 @@ void RigidBodySystemSimulator::notifyCaseChanged(int testCase)
 		setOrientationOf(2, Quat(M_PI_4, 0, M_PI_2));
 		setOrientationOf(3, Quat(0, 0, 0));
 
+		m_pRigidBodySystem->addRandomTorquesTo(0);
+		m_pRigidBodySystem->addRandomTorquesTo(1);
+		m_pRigidBodySystem->addRandomTorquesTo(2);
+		m_pRigidBodySystem->addRandomTorquesTo(3);
+
 		break;
 	default: cout << "default\n";
 	}
-	if (m_iTestCase != 2)
-		m_pRigidBodySystem->reset();
-	j = i;
+	prevTestCase = testCase;
 }
 
 //page 25 'external forces'
 void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 {
-
 	std::vector<Rigidbody> temp = m_pRigidBodySystem->getRigidBodySystem();
 	Vec3 tempTotalTorque;
 	Vec3 tempTotalForce;
@@ -138,12 +139,11 @@ void RigidBodySystemSimulator::externalForcesCalculations(float timeElapsed)
 			tempTotalForce += temp[i].m_pointsTorque[j].fi;
 		}
 
-		//set total Torque
+		//set total Torque q
 		m_pRigidBodySystem->setTotalTorque(i, tempTotalTorque);
-		//set total Force
+		//set total Force F
 		m_pRigidBodySystem->setTotalForce(i, tempTotalForce * m_fextraForce);
 	}
-
 }
 
 void RigidBodySystemSimulator::simulateTimestep(float timeStep)
@@ -153,16 +153,20 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 	int num = m_pRigidBodySystem->getNumRigidBodies();
 
 	for (int i = 0; i < num; i++) {
-		//x
+
+		//x central of mass
 		m_pRigidBodySystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_velocity));
 
-		/*//interaktion mit waenden
-		if ((temp[i].m_boxCenter.x < -0.5f || temp[i].m_boxCenter.x > 0.5f)) {
-			setVelocityOf(i, temp[i].m_velocity.x * (-1.0f));
+		//////////////////////interaktion mit waenden
+		if (interaction) {			
+			if ((m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter.x < -0.5f || m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter.x > 0.5f)) {
+				temp[i].m_velocity.x = temp[i].m_velocity.x * (-1.0f);
+			}
+			if ((m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter.y < -0.5f || m_pRigidBodySystem->getRigidBodySystem()[i].m_boxCenter.y > 0.5f)) {
+				temp[i].m_velocity.y = temp[i].m_velocity.y * (-1.0f);
+			}			
 		}
-		if ((temp[i].m_boxCenter.y < -0.5f || temp[i].m_boxCenter.y > 0.5f)) {
-			setVelocityOf(i, temp[i].m_velocity.y * (-1.0f));
-		}*/
+		//////////////////////
 
 		//v linear velocity
 		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
@@ -178,7 +182,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 
 		//calculate the inverse inertia tensor
 		temp[i].inertiaTensor = m_pRigidBodySystem->getRotMatOf(i) * temp[i].inertiaTensor * tr;
-		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inertiaTensor.transformVector(temp[i].m_angularMomentum));
+		m_pRigidBodySystem->setAngularVelocity(i, temp[i].inertiaTensor.transformVector(m_pRigidBodySystem->getRigidBodySystem()[i].m_angularMomentum));
 
 		if (first) {
 			cout << "------------------------demo1 case------------------------\n";
@@ -199,20 +203,19 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 
 				cout << "world space velocity of point (0.3 0.5 0.25) in world space (" << point << "): " << vel << "\n";
 				second = false;
+				cout << "------------------------demo1 end------------------------\n";
 			}
 		}
 	}
 
+	temp = m_pRigidBodySystem->getRigidBodySystem(); //because values have changed
 	//check for collisions
 	if (m_iTestCase >= 2) {
 
 		for (int i = 0; i < num; i++) {
 			for (int j = 0; j < num, i != j; j++) {
 
-
-				//TODO: KOS right!
 				GamePhysics::Mat4 AM = m_pRigidBodySystem->calcTransformMatrixOf(j);
-
 				GamePhysics::Mat4 BM = m_pRigidBodySystem->calcTransformMatrixOf(i);
 
 				CollisionInfo simpletest = checkCollisionSAT(AM, BM);
@@ -224,31 +227,28 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 
 					if (dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld) >= 0)
 						return;
-										
-					Vec3 deltaVel = dot(temp[j].m_velocity - temp[i].m_velocity, simpletest.normalWorld);
+
+					Vec3 deltaVel = (temp[j].m_velocity - temp[i].m_velocity);
 
 					//calculate impulse J
 					//they should stop flying into each other
 					//bouncies: c=1 fully elasitc c=0 plastic
-					float c = 0;
-					Vec3 J = -(1 + c) * deltaVel;
-					Vec3 nenner;
-					float massterm = 1.0f / temp[i].m_imass + 1.0f / temp[j].m_imass;
-					Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+					float c = 1;
+					float J = -(1 + c) * dot(deltaVel , simpletest.normalWorld);
+					float nenner;
+					float massterm = 1.0f / temp[j].m_imass + 1.0f / temp[i].m_imass;
 					Vec3 a = (cross(temp[j].inertiaTensor.transformVector(cross(temp[j].m_boxCenter, simpletest.normalWorld)), temp[j].m_boxCenter));
-					nenner = massterm + ((a + b) * simpletest.normalWorld);
-					J.safeDivide(nenner);
+					Vec3 b = (cross(temp[i].inertiaTensor.transformVector(cross(temp[i].m_boxCenter, simpletest.normalWorld)), temp[i].m_boxCenter));
+					nenner = massterm + (dot((a + b), simpletest.normalWorld));
+					J = J / nenner;
 
 					//velocity update
-					setVelocityOf(j, temp[j].m_velocity + J * (simpletest.normalWorld / temp[j].m_imass));
-					setVelocityOf(i, temp[i].m_velocity - J * (simpletest.normalWorld / temp[i].m_imass));
+					setVelocityOf(j, temp[j].m_velocity + (J * simpletest.normalWorld) / temp[j].m_imass);
+					setVelocityOf(i, temp[i].m_velocity - (J * simpletest.normalWorld) / temp[i].m_imass);
 
 					m_pRigidBodySystem->setAngularMomentum(j, temp[j].m_angularMomentum + (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
 					m_pRigidBodySystem->setAngularMomentum(i, temp[i].m_angularMomentum - (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
-
-
 				}
-
 			}
 		}
 	}
@@ -299,7 +299,7 @@ void RigidBodySystemSimulator::applyForceOnBody(int i, Vec3 loc, Vec3 force)
 
 void RigidBodySystemSimulator::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
-	m_pRigidBodySystem->addRigidBody(position, size, mass, m_iTestCase);
+	m_pRigidBodySystem->addRigidBody(position, size, mass);
 }
 
 void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)
@@ -310,4 +310,17 @@ void RigidBodySystemSimulator::setOrientationOf(int i, Quat orientation)
 void RigidBodySystemSimulator::setVelocityOf(int i, Vec3 velocity)
 {
 	m_pRigidBodySystem->setCentralOfMassVelocity(i, velocity);
+}
+
+void RigidBodySystemSimulator::cleanScene()
+{
+	m_fextraForce = 1.0f;
+	interaction = false;
+	m_pRigidBodySystem->cleanScene();
+}
+
+void RigidBodySystemSimulator::setupDemoOneRigidbody()
+{
+	m_fextraForce = 1.0f;
+	m_pRigidBodySystem->setupDemoOneRigidbody();
 }

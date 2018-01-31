@@ -2,11 +2,9 @@
 #include "Simulator.h"
 
 //this class defines a system of rigidbodies
-//every rigidbody is defined by its position, orientation, velocity
 
 //for torque
 struct TorqueChar {
-	//page 22
 	Vec3 xi, fi;
 };
 
@@ -17,7 +15,7 @@ struct Rigidbody{
 	int m_imass;
 	boolean fixed;
 	//hopefully inertia tensor
-	Mat4 inertiaTensor, inert;	
+	Mat4 inertiaTensor;	
 	//mass points producing toques -> m_torque is total torque
 	std::vector<TorqueChar> m_pointsTorque;
 };
@@ -40,7 +38,7 @@ public:
 	void setRotation(int i, Quat rot);
 	void setAngularVelocity(int i, Vec3 w);
 	void setAngularMomentum(int i, Vec3 L);
-	int addRigidBody(Vec3 position, Vec3 size, int mass, int test);
+	int addRigidBody(Vec3 position, Vec3 size, int mass);
 
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);	
@@ -49,11 +47,13 @@ public:
 	Vec3 getXiOf(int i, int j);
 
 	//setze rigidbody auf pos (0,0,0)
-	void reset();
-	//setze alle werte auf (0,0,0) 
-	void reset2(int test);
+	void setBoxCenterToZero();
+	//setup fuer demo1 und demo2
+	void setupDemoOneRigidbody();
 	//loesche die ganze szene
-	void reset3();
+	void cleanScene();
+	//loescht vorherige torques und setzt neue
+	void addRandomTorquesTo(int i);
 		
 private:
 	//Attributes
