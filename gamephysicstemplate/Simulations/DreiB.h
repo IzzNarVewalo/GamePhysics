@@ -1,16 +1,9 @@
-
 #ifndef DREIB_h
 #define DREIB_h
 
 #include "DreiBSystem.h"
 #include "collisionDetect.h"
 #include "ParticleCollisionSystem.h"
-
-//baukloetzchen und ball
-//simulator
-class DreiB :public Simulator {
-
-#include "DreiBSystem.h"
 
 //baukloetzchen und ball
 //simulator
