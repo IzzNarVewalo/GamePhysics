@@ -1,6 +1,7 @@
 #include "DreiB.h"
 
 int m_ifactor = 1; //massenfaktor
+boolean collided = false;
 
 DreiB::DreiB()
 {
@@ -28,7 +29,6 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 	case 0:
 		//masse erhoehen, kraft erhoehen
 		TwAddButton(DUC->g_pTweakBar, "double mass", [](void * s) { m_ifactor *= 2; }, nullptr, "");
-		TwAddVarRW(DUC->g_pTweakBar, "extra force factor", TW_TYPE_FLOAT, &m_fexternalForce, "min=1 step=0.1 max=5");
 		break;
 	case 1:
 		//baelleanzahl aendern
@@ -103,13 +103,13 @@ void DreiB::externalForcesCalculations(float timeElapsed)
 			}
 
 			//nur wer torque hat und ball ist bekommt gravity
-			/*if (temp[i].isBall || (tempTorqueNum > 0)) {
+			if (temp[i].isBall || (tempTorqueNum > 0 || collided)) {
 				tempTotalForce = m_fexternalForce;
 			}
 			else {
 				tempTotalForce = Vec3(0.0f);
-			}*/
-			tempTotalForce = m_fexternalForce;
+			}
+			//tempTotalForce = m_fexternalForce;
 
 			//set total Torque
 			m_pDreiBSystem->setTotalTorque(i, tempTotalTorque);
@@ -129,6 +129,11 @@ void DreiB::simulateTimestep(float timeStep)
 		if (temp[i].m_bfixed) { continue; }
 		//x position
 		m_pDreiBSystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_linearVelocity));
+
+		//rest on the floor
+		if (temp[i].m_boxCenter.y <= -0.475f && !temp[i].isBall)
+			temp[i].m_linearVelocity.y = 0.0f;
+
 		//v linear velocity		
 		m_pDreiBSystem->setLinearVelocity(i, (temp[i].m_linearVelocity + timeStep * (temp[i].m_totalForce)
 			/ (m_pDreiBSystem->getTotalMassOf(i))));
@@ -169,7 +174,7 @@ void DreiB::simulateTimestep(float timeStep)
 
 	//check for collisions
 	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < num; i != j, j++) {
+		for (int j = 55; j < 59; i != j, j++) {
 
 			if (temp[i].m_bfixed)
 				continue;
@@ -186,6 +191,8 @@ void DreiB::simulateTimestep(float timeStep)
 
 				if (dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld) >= 0)
 					continue;
+
+				collided = true;
 
 				if (temp[i].m_pointsTorque.empty()) {
 					m_pDreiBSystem->pushBackTorque(i, simpletest.collisionPointWorld, Vec3(2, 4, 0));

@@ -12,7 +12,7 @@ void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
 
 	for (int i = 0; i < wallSize; i++) {
 		for (int j = 0; j < wallSize - i; j++) {
-			addBox(Vec3(xPosInit + j*widthBox + offset, yPosInit + i*heightBox, (j%2)*0.05f), Vec3(widthBox - 0.02f, heightBox, 0.1f), 10);
+			addBox(Vec3(xPosInit + j*widthBox + offset, yPosInit + i*heightBox + 0.02f, (j%2)*0.05f), Vec3(widthBox - 0.02f, heightBox, 0.1f), 10);
 		}
 		offset += widthBox / 2;
 	}
@@ -119,12 +119,12 @@ void DreiBSystem::resetScene()
 
 	//make new scene
 	buildBoxWall(10, 0.1f, 0.05f);
-	addBall(Vec3(0, -0.35f, -0.5f), 0.05f, 300, Vec3(0, 0, 8));
-	addBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 9));
+	addBall(Vec3(-0.2f, -0.35f, -0.5f), 0.05f, 300, Vec3(0, 0, 8));
+	addBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 200, Vec3(0, 0, 9));
 
 	Spring spring;
 	spring.initialLength = 0.7f;
-	spring.point1 = addBall(Vec3(0, 0.3f, 0.2f), 0.05f, 3, Vec3(0.0f, 0.0f, 0.0f), false, true);
+	spring.point1 = addBall(Vec3(0.2f, 0.5f, 0.2f), 0.05f, 300, Vec3(0.01f, -10.0f, 0.0f), false, true);
 	spring.point2 = addBall(Vec3(0, 0.5, 0), 0.05f, 10, Vec3(.0f), true, true);
 	m_spring = spring;
 }
