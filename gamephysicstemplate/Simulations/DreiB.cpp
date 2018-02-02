@@ -131,8 +131,10 @@ void DreiB::simulateTimestep(float timeStep)
 		m_pDreiBSystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_linearVelocity));
 
 		//rest on the floor
-		if (temp[i].m_boxCenter.y <= -0.475f && !temp[i].isBall)
+		if (temp[i].m_boxCenter.y <= -0.475f && !temp[i].isBall) {
 			temp[i].m_linearVelocity.y = 0.0f;
+			temp[i].m_angularVelocity *= 0.5f;
+		}
 
 		//v linear velocity		
 		m_pDreiBSystem->setLinearVelocity(i, (temp[i].m_linearVelocity + timeStep * (temp[i].m_totalForce)
@@ -180,8 +182,8 @@ void DreiB::simulateTimestep(float timeStep)
 				continue;
 
 			float distance = norm(temp[i].m_boxCenter - temp[j].m_boxCenter);
-			float minDistance = norm(temp[i].m_boxSize + temp[j].m_boxSize);
-			if (distance > minDistance)
+			float minDistance = norm(temp[i].m_boxSize);
+			if (distance >= minDistance)
 				continue;
 
 			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(j);
@@ -190,7 +192,7 @@ void DreiB::simulateTimestep(float timeStep)
 			CollisionInfo simpletest = checkCollisionSAT(AM, BM);
 
 			if (simpletest.isValid) {
-				std::printf("Collision\n");
+				
 				//auf welcher flaeche welches koerpers steht die normale?
 				//wenn n positiv, dann steht es auf B, sonst auf A
 
