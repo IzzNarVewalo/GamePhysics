@@ -27,7 +27,7 @@ struct Ball {
 class DreiBSystem
 {
 public:
-	DreiBSystem();
+	DreiBSystem(int m_iTestCase);
 	~DreiBSystem() {};
 
 	//Getter & Setter
@@ -64,6 +64,9 @@ public:
 	void setLinearVelocity(boolean ball, int i, Vec3 vel) {
 		ball ? m_balls[i].velocity = vel : m_boxWall[i].m_linearVelocity = vel;
 	}
+	void setForce(int i, Vec3 force) {
+		m_balls[i].force = force;
+	}
 	void setRotation(int i, Quat rot) {
 		m_boxWall[i].m_orientation = rot;
 	}
@@ -78,8 +81,11 @@ public:
 	int addBox(Vec3 position, Vec3 size, int mass);
 	void reset();
 	void buildBoxWall(int wallSize, float widthBox, float heightBox);
-	
 	int createBall(Vec3 pos, float size, int mass, Vec3 vel);
+
+	void DreiBSystem::setupCase0();
+	void DreiBSystem::setupCase1();
+	void DreiBSystem::setupCase2();
 	
 	Mat4 getTranslatMatOf(int i);
 	Mat4 getRotMatOf(int i);

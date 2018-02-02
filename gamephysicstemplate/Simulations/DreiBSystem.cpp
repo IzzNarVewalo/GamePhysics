@@ -1,11 +1,25 @@
 #include "DreiBSystem.h"
 
-DreiBSystem::DreiBSystem() {
+DreiBSystem::DreiBSystem(int m_iTestCase) {
 	
 	m_iNumBalls = m_iNumBoxes = 0;
+	
+}
+
+void DreiBSystem::setupCase0()
+{
 	//wallSize, widthBox, heightBox
 	buildBoxWall(10, 0.1f, 0.05f);
 	createBall(Vec3(0, -0.25f, -0.5f), 0.05f, 5, Vec3(0, 0, 1));
+}
+
+void DreiBSystem::setupCase1() {
+
+}
+
+void DreiBSystem::setupCase2()
+{
+	createBall(Vec3(0, 0.25f, -0.5f), 0.05f, 5, Vec3(0, 0, 1));
 }
 
 void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
@@ -93,7 +107,12 @@ int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 
 void DreiBSystem::reset()
 {
-	addBox(Vec3(.0f, .0f, .0f), Vec3(0.1f, 0.1f, 0.1f), 1);
+	m_balls.clear();
+	m_boxWall.clear();
+
+
+	m_iNumBalls = 0;
+	m_iNumBoxes = 0;
 }
 
 Mat4 DreiBSystem::getTranslatMatOf(int i)

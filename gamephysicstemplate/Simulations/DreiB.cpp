@@ -4,11 +4,12 @@ int m_ifactor = 1; //massenfaktor
 
 DreiB::DreiB()
 {
-	m_pDreiBSystem = new DreiBSystem();
+	m_iTestCase = 0; //wegen main startet immer bei 0
+	m_pDreiBSystem = new DreiBSystem(m_iTestCase);
 
 	//m_particleColSys = new ParticleCollisionSystem();
-	//m_iTestCase = 0; //wegen main startet immer bei 0
-	m_fextraForce = 0.0f;
+	
+	m_fextraForce = -9.81f;
 }
 
 DreiB::~DreiB()
@@ -47,10 +48,7 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
 	int numTemp = m_pDreiBSystem->getNumBoxes();
-	float red = 0;
-	float green = 0;
-	float blue = 0;
-	float factor = 1.0f / numTemp * 4;
+
 
 	/*if (m_iTestCase == 0)
 		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
@@ -58,21 +56,7 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 		DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 1), 1000.0f, Vec3(0.5f, 0.0f, 0.5f));*/
 
 	for (int i = 0; i < numTemp; i++) {
-		/*std::cout << "factor: " << factor << endl;
-		if (red <= 1 && green <= 0) {
-			red += factor;
-
-			std::cout << "erstes if" << red << endl;
-		}
-		else if (green <= 1){
-			green += factor;
-			red -= factor;
-			std::cout << "zweites if !\n";
-		}
-		else {
-			blue += factor;
-			green -= factor;
-		}*/
+		
 
 		if (i % 3 == 0) {
 			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
@@ -84,7 +68,7 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.5f, 0.2f, 0.8f));
 		}
 
-		//DUC->setUpLighting(Vec3(0, 0, 0), Vec3(0.5f, 0.5f, 0.5f), 2000.0f, Vec3(red, green, blue));
+		
 		DUC->drawRigidBody(m_pDreiBSystem->calcTransformMatrixOf(i));
 	}
 
@@ -113,12 +97,12 @@ void DreiB::externalForcesCalculations(float timeElapsed)
 
 		tempTotalTorque = Vec3(.0f);
 		tempTotalForce = Vec3(.0f);
-		tempTorqueNum = temp[i].m_pointsTorque.size();
+		tempTorqueNum = temp[i].m_pDreiBSystem->getBallsTorque.size();
 
 		for (int j = 0; j < tempTorqueNum; j++) {
-			Vec3 xi = (temp[i].m_pointsTorque[j].xi - temp[i].m_boxCenter);
-			tempTotalTorque += cross(xi, temp[i].m_pointsTorque[j].fi);
-			tempTotalForce += temp[i].m_pointsTorque[j].fi;
+			Vec3 xi = (temp[i].m_pDreiBSystem->getBallsTorque[j].xi - temp[i].m_boxCenter);
+			tempTotalTorque += cross(xi, temp[i].m_pDreiBSystem->getBallsTorque[j].fi);
+			tempTotalForce += temp[i].m_pDreiBSystem->getBallsTorque[j].fi;
 		}
 
 		//set total Torque
@@ -130,6 +114,64 @@ void DreiB::externalForcesCalculations(float timeElapsed)
 //benutzen Midpoint, wei stabil
 void DreiB::simulateTimestep(float timeStep)
 {
+	midpointStep(timeStep);
+}
+
+void DreiB::midpointStep(float timeStep)
+{
+	std::vector<Ball> tmpBalls = m_pDreiBSystem->getBalls();
+
+	int numBalls = m_pDreiBSystem->getNumBalls();
+
+	for (int i = 0; i < numBalls; i++) {
+		
+		//xTilde
+		tmpBalls[i].ballCenter = m_pDreiBSystem->getBalls()[i].ballCenter + (timeStep / 2) * m_pDreiBSystem->getBalls()[i].velocity;
+
+		//vel at xTilde
+		tmpBalls[i].velocity = m_pDreiBSystem->getBalls()[i].velocity + (timeStep / 2) * m_pDreiBSystem->getBalls()[i].force / m_pDreiBSystem->getBalls()[i].mass;
+
+		//new ballCenter
+		m_pDreiBSystem->setCentralOfMassPosition(true, i, m_pDreiBSystem->getBalls()[i].ballCenter + timeStep * tmpBalls[i].velocity);
+
+		//clear forces
+		for (int i = 0; i < numBalls; i++) {
+				
+			m_pDreiBSystem->setForce(i, Vec3(0, 1, 0) * m_fextraForce);
+				
+		}
+		
+	}
+
+	////acc at xTilde, time t+h/2
+	////compute internal force for all points in the system
+	//for (int i = 0; i < m_inumSprings; i++) {
+	//	//current length of spring
+	//	m_springs[i].currentLength = norm(tmpBalls[m_springs[i].point1].ballCenter - tmpBalls[m_springs[i].point2].ballCenter);
+
+	//	Vec3 tmp = m_fStiffness * (m_springs[i].currentLength - m_springs[i].initialLength);
+
+	//	Vec3 force = tmp * (tmpBalls[m_springs[i].point1].ballCenter - tmpBalls[m_springs[i].point2].ballCenter) / (m_springs[i].currentLength);
+	//	tmpBalls[m_springs[i].point1].force -= force;
+
+	//	force = tmp * (tmpBalls[m_springs[i].point2].ballCenter - tmpBalls[m_springs[i].point1].ballCenter) / (m_springs[i].currentLength);
+	//	tmpBalls[m_springs[i].point2].force -= force;
+	//}
+
+	//new velocity
+	for (int i = 0; i < numBalls; i++)
+	{
+		
+		//bounding with floor
+		if (m_pDreiBSystem->getBalls()[i].ballCenter.y <= -0.5f)
+			m_pDreiBSystem->getBalls()[i].velocity.y *= (-0.99f);
+		//bounding with walls
+		if ((m_pDreiBSystem->getBalls()[i].ballCenter.x <= -0.5f || m_pDreiBSystem->getBalls()[i].ballCenter.x > 0.5f))
+			m_pDreiBSystem->getBalls()[i].velocity.x *= (-0.90f);
+		//divide the force by mass of the point to get the acceleration 
+		m_pDreiBSystem->setLinearVelocity(true, i, m_pDreiBSystem->getBalls()[i].velocity + timeStep * tmpBalls[i].force / m_pDreiBSystem->getBalls()[i].mass);
+		
+	}
 
 }
 
@@ -140,19 +182,27 @@ void DreiB::notifyCaseChanged(int testCase)
 	switch (m_iTestCase) {
 	case 0:
 		std::cout << "Holzkloetzchenspiel !\n";
+		m_pDreiBSystem->reset();
+		m_pDreiBSystem = new DreiBSystem(m_iTestCase);
+		m_pDreiBSystem->setupCase0();
 		break;
 	case 1:
 		std::cout << "2.0Holzkloetzchenspiel !\n";
+		m_pDreiBSystem->reset();
+		m_pDreiBSystem = new DreiBSystem(m_iTestCase);
+		m_pDreiBSystem->setupCase1();
 		break;
 	case 2:
 		std::cout << "Teilchenkoll !\n";
+		m_pDreiBSystem = new DreiBSystem(m_iTestCase);
+		m_pDreiBSystem->setupCase2();
 		break;
 	default:break;
 	}
 }
 
-void DreiB::addBox(Vec3 position, Vec3 size, int mass)
+void DreiB::addBox(Vec3 ballCenter, Vec3 size, int mass)
 {
-	m_pDreiBSystem->addBox(position, size, mass);
+	m_pDreiBSystem->addBox(ballCenter, size, mass);
 }
 

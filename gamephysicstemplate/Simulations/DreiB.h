@@ -27,6 +27,7 @@ public:
 	void externalForcesCalculations(float timeElapsed);
 	void simulateTimestep(float timeStep);
 	void notifyCaseChanged(int testCase);
+	void midpointStep(float timeStep);
 
 	void onClick(int x, int y) {
 		m_trackmouse.x = x;
@@ -44,7 +45,6 @@ public:
 		m_pDreiBSystem->setNumBalls(num);
 	}
 
-	void incNumBalls();
 
 	void addBox(Vec3 pos, Vec3 size, int mass);
 
