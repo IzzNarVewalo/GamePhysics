@@ -8,7 +8,7 @@ DreiB::DreiB()
 
 	//m_particleColSys = new ParticleCollisionSystem();
 	//m_iTestCase = 0; //wegen main startet immer bei 0
-	m_fextraForce = Vec3(0, -9.81f, 0);
+	m_fexternalForce = Vec3(0.0f);
 }
 
 DreiB::~DreiB()
@@ -28,7 +28,7 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 	case 0:
 		//masse erhoehen, kraft erhoehen
 		TwAddButton(DUC->g_pTweakBar, "double mass", [](void * s) { m_ifactor *= 2; }, nullptr, "");
-		TwAddVarRW(DUC->g_pTweakBar, "extra force factor", TW_TYPE_FLOAT, &m_fextraForce, "min=1 step=0.1 max=5");
+		TwAddVarRW(DUC->g_pTweakBar, "extra force factor", TW_TYPE_FLOAT, &m_fexternalForce, "min=1 step=0.1 max=5");
 		break;
 	case 1:
 		//baelleanzahl aendern
@@ -46,14 +46,14 @@ void DreiB::initUI(DrawingUtilitiesClass * DUC)
 
 void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 {
-	int numTemp = m_pDreiBSystem->getNumBoxes();
+	int numTemp = m_pDreiBSystem->getNumObjects();
 	float red = 0;
 	float green = 0;
 	float blue = 0;
 	float factor = 1.0f / numTemp * 4;
 
 	for (int i = 0; i < numTemp; i++) {
-		if (!m_pDreiBSystem->getBoxWalls()[i].ball) {
+		if (!m_pDreiBSystem->getObjects()[i].isBall) {
 			if (i % 3 == 0) {
 				DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 1, 0), 2000.0f, Vec3(0.8f, 0.2f, 0.5f));
 			}
@@ -67,83 +67,77 @@ void DreiB::drawFrame(ID3D11DeviceContext * pd3dImmediateContext)
 		}
 		else {
 			DUC->setUpLighting(Vec3(0, 0, 0), Vec3(1, 0, 0), 1000.0f, Vec3(1.0f, 0.0f, 0.0f));
-			DUC->drawSphere(m_pDreiBSystem->getBoxWalls()[i].m_boxCenter, m_pDreiBSystem->getBoxWalls()[i].m_boxSize);
+			DUC->drawSphere(m_pDreiBSystem->getObjects()[i].m_boxCenter, m_pDreiBSystem->getObjects()[i].m_boxSize);
 		}
 	}
 
 	//springs
 	DUC->beginLine();
-	DUC->drawLine(m_pDreiBSystem->getBoxWalls()[m_pDreiBSystem->m_spring.point1].m_boxCenter, Vec3(0, 1, 0), m_pDreiBSystem->getBoxWalls()[m_pDreiBSystem->m_spring.point2].m_boxCenter, Vec3(0, 0, 1));
+	DUC->drawLine(m_pDreiBSystem->getObjects()[m_pDreiBSystem->m_spring.point1].m_boxCenter, Vec3(0, 1, 0), m_pDreiBSystem->getObjects()[m_pDreiBSystem->m_spring.point2].m_boxCenter, Vec3(0, 0, 1));
 	DUC->endLine();
 }
 
 void DreiB::externalForcesCalculations(float timeElapsed)
 {
+	//gravity
+	m_fexternalForce = Vec3(0, -9.81f, 0) * 10.0f;
 
 	//iteriere durch boxen, baelle brauchen keine torques (?)
-	std::vector<Box> temp = m_pDreiBSystem->getBoxWalls();
+	std::vector<Box> temp = m_pDreiBSystem->getObjects();
 	Vec3 tempTotalTorque;
 	Vec3 tempTotalForce;
 	int tempTorqueNum = 0;
 
-	for (int i = 0; i < m_pDreiBSystem->getNumBoxes(); i++) {
+	for (int i = 0; i < m_pDreiBSystem->getNumObjects(); i++) {
 		if (!temp[i].m_bfixed) {
-			if (!temp[i].ball) {
-				tempTotalTorque = Vec3(.0f);
-				tempTotalForce = Vec3(.0f);
-				tempTorqueNum = temp[i].m_pointsTorque.size();
 
-				for (int j = 0; j < tempTorqueNum; j++) {
-					Vec3 xi = (temp[i].m_pointsTorque[j].xi - temp[i].m_boxCenter);
-					tempTotalTorque += cross(xi, temp[i].m_pointsTorque[j].fi);
-					tempTotalForce += temp[i].m_pointsTorque[j].fi;
-				}
+			tempTotalTorque = Vec3(.0f);
+			tempTotalForce = Vec3(.0f);
 
-				//set total Torque
-				m_pDreiBSystem->setTotalTorque(i, tempTotalTorque);
-				//set total Force
-				m_pDreiBSystem->setTotalForce(i, tempTotalForce * m_fextraForce);
+			tempTorqueNum = temp[i].m_pointsTorque.size();
+
+			for (int j = 0; j < tempTorqueNum; j++) {
+				Vec3 xi = (temp[i].m_pointsTorque[j].xi - temp[i].m_boxCenter);
+				tempTotalTorque += cross(xi, temp[i].m_pointsTorque[j].fi);
+				tempTotalForce += temp[i].m_pointsTorque[j].fi;
 			}
-			//sonst berechnet sich die totale kraft aus der spring
+
+			//nur wer torque hat und ball ist bekommt gravity
+			/*if (temp[i].isBall || (tempTorqueNum > 0)) {
+				tempTotalForce = m_fexternalForce;
+			}
 			else {
+				tempTotalForce = Vec3(0.0f);
+			}*/
+			tempTotalForce = m_fexternalForce;
 
-				//current length of spring
-				m_pDreiBSystem->m_spring.currentLength = norm(temp[m_pDreiBSystem->m_spring.point1].m_boxCenter - temp[m_pDreiBSystem->m_spring.point2].m_boxCenter);
-
-				Vec3 tmps = 70 * (m_pDreiBSystem->m_spring.currentLength - m_pDreiBSystem->m_spring.initialLength);
-
-				Vec3 force = tmps * (temp[m_pDreiBSystem->m_spring.point1].m_boxCenter - temp[m_pDreiBSystem->m_spring.point2].m_boxCenter) / (m_pDreiBSystem->m_spring.currentLength);
-				m_pDreiBSystem->setTotalForce(m_pDreiBSystem->m_spring.point1, m_pDreiBSystem->getBoxWalls()[m_pDreiBSystem->m_spring.point1].m_totalForce - force);
-
-				force = tmps * (temp[m_pDreiBSystem->m_spring.point2].m_boxCenter - temp[m_pDreiBSystem->m_spring.point1].m_boxCenter) / (m_pDreiBSystem->m_spring.currentLength);
-				m_pDreiBSystem->setTotalForce(m_pDreiBSystem->m_spring.point2, m_pDreiBSystem->getBoxWalls()[m_pDreiBSystem->m_spring.point2].m_totalForce - force);
-			}
+			//set total Torque
+			m_pDreiBSystem->setTotalTorque(i, tempTotalTorque);
+			//set total Force
+			m_pDreiBSystem->setTotalForce(i, tempTotalForce);
 		}
 	}
 }
 
 void DreiB::simulateTimestep(float timeStep)
 {
-	std::vector<Box> temp = m_pDreiBSystem->getBoxWalls();
-	int num = m_pDreiBSystem->getNumBoxes();
+	std::vector<Box> temp = m_pDreiBSystem->getObjects();
+	int num = m_pDreiBSystem->getNumObjects();
 
-	//wall
+	//wall and balls
 	for (int i = 0; i < num; i++) {
-
-		if (temp[i].m_linearVelocity.x != (.0f)) {
-			temp[i].m_totalForce.y += -20.0f;
-		}
-
+		if (temp[i].m_bfixed) { continue; }
 		//x position
 		m_pDreiBSystem->setCentralOfMassPosition(i, (temp[i].m_boxCenter + timeStep * temp[i].m_linearVelocity));
 		//v linear velocity		
-		m_pDreiBSystem->setLinearVelocity(i, (temp[i].m_linearVelocity + timeStep * (temp[i].m_totalForce) / (m_pDreiBSystem->getTotalMass())));
+		m_pDreiBSystem->setLinearVelocity(i, (temp[i].m_linearVelocity + timeStep * (temp[i].m_totalForce)
+			/ (m_pDreiBSystem->getTotalMassOf(i))));
 
-		if (!temp[i].ball) {
+		if (!temp[i].isBall) {
 			//r see page 58
 			Quat orient = temp[i].m_orientation + (timeStep / 2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
 			setOrientationOf(i, (orient.unit()));
-			//L angular momentum page 56		
+			//L angular momentum page 56
 			m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum + timeStep * temp[i].m_totalTorque);
 
 			//w angular velocity
@@ -155,12 +149,30 @@ void DreiB::simulateTimestep(float timeStep)
 			m_pDreiBSystem->setAngularVelocity(i, temp[i].m_inertiaTensor.transformVector(temp[i].m_angularMomentum));
 		}
 	}
-	
-	temp = m_pDreiBSystem->getBoxWalls();
+	temp = m_pDreiBSystem->getObjects();
+
+	float fixed = m_pDreiBSystem->m_spring.point2;
+	float wreckingBall = m_pDreiBSystem->m_spring.point1;
+	//instead of spring, a rope -> constraint
+	//                       fixed                                            wrecking ball
+	Vec3 vectorToFixed = temp[fixed].m_boxCenter - temp[wreckingBall].m_boxCenter;
+	float currentSpringLength = norm(vectorToFixed);
+	float deltaLength = (currentSpringLength - m_pDreiBSystem->m_spring.initialLength);
+	Vec3 deltaPos = deltaLength*(vectorToFixed / currentSpringLength);
+	m_pDreiBSystem->setCentralOfMassPosition(wreckingBall, deltaPos + temp[wreckingBall].m_boxCenter);
+
+	//velocity -> not slowing down
+	m_pDreiBSystem->setLinearVelocity(wreckingBall, temp[wreckingBall].m_linearVelocity -
+		(dot(temp[wreckingBall].m_linearVelocity, vectorToFixed) * vectorToFixed));
+
+	temp = m_pDreiBSystem->getObjects();
 
 	//check for collisions
-	for (int i = 0; i < num - 1; i++) {
-		for (int j = 55; j < 58; j++) {
+	for (int i = 0; i < num; i++) {
+		for (int j = 0; j < num; i != j, j++) {
+
+			if (temp[i].m_bfixed)
+				continue;
 
 			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(j);
 			GamePhysics::Mat4 BM = m_pDreiBSystem->calcTransformMatrixOf(i);
@@ -173,7 +185,7 @@ void DreiB::simulateTimestep(float timeStep)
 				//wenn n positiv, dann steht es auf B, sonst auf A
 
 				if (dot(temp[j].m_linearVelocity - temp[i].m_linearVelocity, simpletest.normalWorld) >= 0)
-					return;
+					continue;
 
 				if (temp[i].m_pointsTorque.empty()) {
 					m_pDreiBSystem->pushBackTorque(i, simpletest.collisionPointWorld, Vec3(2, 4, 0));
@@ -199,6 +211,9 @@ void DreiB::simulateTimestep(float timeStep)
 
 				m_pDreiBSystem->setAngularMomentum(j, temp[j].m_angularMomentum + 10 * (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
 				m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum - 10 * (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
+
+				//Set torque -> not working
+				//m_pDreiBSystem->pushBackTorque(i, simpletest.collisionPointWorld, Vec3(2, 4, 0));
 			}
 		}
 	}

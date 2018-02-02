@@ -28,7 +28,7 @@ public:
 	//Functions
 	std::vector<Rigidbody> getRigidBodySystem();
 	int getNumRigidBodies();
-	int getTotalMass();
+	int getTotalMassOf(int i);
 	void decNumRigidBodies();
 	void incNumRigidBodies();
 	void setTotalTorque(int i, Vec3 torque);

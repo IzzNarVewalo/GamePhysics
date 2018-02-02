@@ -19,9 +19,9 @@ int RigidBodySystem::getNumRigidBodies()
 	return m_iNumRigidBodies;
 }
 
-int RigidBodySystem::getTotalMass()
+int RigidBodySystem::getTotalMassOf(int i)
 {
-	return m_fTotalMass;
+	return m_rigidbodySystem[i].m_imass;
 }
 
 void RigidBodySystem::decNumRigidBodies()
@@ -71,8 +71,6 @@ void RigidBodySystem::setAngularMomentum(int i, Vec3 L)
 
 int RigidBodySystem::addRigidBody(Vec3 position, Vec3 size, int mass)
 {
-	m_fTotalMass += mass;
-
 	Rigidbody rigid;
 	rigid.m_boxCenter = position;
 	rigid.m_boxSize = size;

@@ -169,7 +169,7 @@ void RigidBodySystemSimulator::simulateTimestep(float timeStep)
 		//////////////////////
 
 		//v linear velocity
-		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMass())));
+		setVelocityOf(i, (temp[i].m_velocity + timeStep * temp[i].m_force / (m_pRigidBodySystem->getTotalMassOf(i))));
 		//r see page 58
 		Quat orient = temp[i].m_orientation + (timeStep / 2)* Quat(temp[i].m_angularVelocity.x, temp[i].m_angularVelocity.y, temp[i].m_angularVelocity.z, 1.0f) * temp[i].m_orientation;
 		setOrientationOf(i, (orient.unit()));

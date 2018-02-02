@@ -22,7 +22,7 @@ struct Box {
 	std::vector<TorqueChar> m_pointsTorque;
 
 	//box represents ball or rigidbody
-	boolean ball;
+	boolean isBall, isSpring;
 };
 
 class DreiBSystem
@@ -31,48 +31,52 @@ public:
 	DreiBSystem();
 
 	//Getter & Setter
-	std::vector<Box> getBoxWalls() {
-		return m_boxWall;
+	std::vector<Box> getObjects() {
+		return m_objects;
 	}
-	int getTotalMass() {
-		return m_iTotalMass;
+	int getTotalMassOf(int i) {
+		return m_objects[i].m_imass;
 	}
-	int getNumBoxes() {
-		return m_iNumBoxes;
+	int getNumObjects() {
+		return m_objects.size();
 	}	
 
 	void setTotalTorque(int i, Vec3 torque) {
-		m_boxWall[i].m_totalTorque = torque;
+		m_objects[i].m_totalTorque = torque;
 	}
 	void setTotalForce(int i, Vec3 force) {
-		m_boxWall[i].m_totalForce = force;
+		m_objects[i].m_totalForce = force;
 	}
 	void setCentralOfMassPosition(int i, Vec3 pos) {
-		m_boxWall[i].m_boxCenter = pos;
+		m_objects[i].m_boxCenter = pos;
 	}
 	void setLinearVelocity(int i, Vec3 vel) {
-		m_boxWall[i].m_linearVelocity = vel;
+		m_objects[i].m_linearVelocity = vel;
 	}
 	void setRotation(int i, Quat rot) {
-		m_boxWall[i].m_orientation = rot;
+		m_objects[i].m_orientation = rot;
 	}
 	void setAngularVelocity(int i, Vec3 w) {
-		m_boxWall[i].m_angularVelocity = w;
+		m_objects[i].m_angularVelocity = w;
 	}
 	void setAngularMomentum(int i, Vec3 L) {
-		m_boxWall[i].m_angularMomentum = L;
+		m_objects[i].m_angularMomentum = L;
 	}
 	
 	void pushBackTorque(int i, Vec3 torque, Vec3 force) {
 		TorqueChar t;
 		t.fi = force;
 		t.xi = torque;
-		m_boxWall[i].m_pointsTorque.push_back(t);
+		m_objects[i].m_pointsTorque.push_back(t);
+	}
+
+	void popBackTorque(int i) {
+		m_objects[i].m_pointsTorque.pop_back();
 	}
 
 	//fuegt kloetzchen zum turm hinzu
 	int addBox(Vec3 position, Vec3 size, int mass);
-	int addBall(Vec3 pos, float size, int mass, Vec3 vel);
+	int addBall(Vec3 pos, float size, int mass, Vec3 vel, boolean isfixed, boolean isspring);
 	void reset();
 	void buildBoxWall(int wallSize, float widthBox, float heightBox);	
 
@@ -85,9 +89,8 @@ public:
 
 private:
 
-	std::vector<Box> m_boxWall;
+	std::vector<Box> m_objects;
 
-	int m_iTotalMass = 0;
 	int m_iNumBoxes;
 };
 

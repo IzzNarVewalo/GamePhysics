@@ -53,7 +53,7 @@ public:
 private:
 
 	DreiBSystem* m_pDreiBSystem;
-	Vec3 m_fextraForce;
+	Vec3 m_fexternalForce;
 
 	Point2D m_mouse;
 	Point2D m_trackmouse;

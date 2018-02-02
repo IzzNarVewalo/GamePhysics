@@ -18,15 +18,16 @@ void DreiBSystem::buildBoxWall(int wallSize, float widthBox, float heightBox) {
 	}
 }
 
-int DreiBSystem::addBall(Vec3 pos, float size, int mass, Vec3 vel)
+int DreiBSystem::addBall(Vec3 pos, float size, int mass, Vec3 vel, boolean fixed = false, boolean spring = false)
 {
 	Box ball;
 	ball.m_angularMomentum = ball.m_angularVelocity = Vec3(.0f);
 	ball.m_boxCenter = pos;
 	ball.m_boxSize = size;
 	ball.m_imass = mass;
-	ball.ball = true;
-	ball.m_bfixed;
+	ball.isBall = true;
+	ball.m_bfixed = fixed;
+	ball.isSpring = spring;
 	//intern for better collision
 	ball.m_orientation = Quat(0, M_PI_4, M_PI_4);
 	ball.m_linearVelocity = vel;
@@ -35,7 +36,9 @@ int DreiBSystem::addBall(Vec3 pos, float size, int mass, Vec3 vel)
 	float Ixy = mass * (-size * size);
 	ball.m_inertiaTensor = XMMatrixSet(Ixx, Ixy, Ixy, .0f, Ixy, Ixx, Ixy, .0f, Ixy, Ixy, Ixx, .0f, .0f, .0f, .0f, 1.0f);
 	
-	m_boxWall.push_back(ball);
+	ball.m_totalForce = Vec3(0.0f);
+
+	m_objects.push_back(ball);
 	++m_iNumBoxes;
 
 	return m_iNumBoxes - 1;
@@ -43,13 +46,13 @@ int DreiBSystem::addBall(Vec3 pos, float size, int mass, Vec3 vel)
 
 int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 {
-	m_iTotalMass += mass;
-
 	Box box;
 	box.m_boxCenter = position;
 	box.m_boxSize = size;
 	box.m_imass = mass;
-	box.ball = false;
+	box.m_bfixed = false;
+	box.isBall = false;
+	box.isSpring = false;
 
 	//calculate inertia tensor in 3D
 	float Ixx = mass *(size.z * size.z + size.x * size.x);
@@ -70,12 +73,13 @@ int DreiBSystem::addBox(Vec3 position, Vec3 size, int mass)
 	box.m_orientation = Quat(0, 0, 0);
 
 	//force die gegen gravity wirkt
-	box.m_totalForce = Vec3(0, 9.81f, 0);
+	box.m_totalForce = Vec3(0.0f);
+	box.m_linearVelocity = Vec3(.0f);
 
-	m_boxWall.push_back(box);
+	m_objects.push_back(box);
 	++m_iNumBoxes;
 
-	return m_boxWall.size() - 1;
+	return m_objects.size() - 1;
 }
 
 void DreiBSystem::reset()
@@ -86,19 +90,19 @@ void DreiBSystem::reset()
 Mat4 DreiBSystem::getTranslatMatOf(int i)
 {
 	Mat4 temp;
-	temp.initTranslation(m_boxWall[i].m_boxCenter.x, m_boxWall[i].m_boxCenter.y, m_boxWall[i].m_boxCenter.z);
+	temp.initTranslation(m_objects[i].m_boxCenter.x, m_objects[i].m_boxCenter.y, m_objects[i].m_boxCenter.z);
 	return temp;
 }
 
 Mat4 DreiBSystem::getRotMatOf(int i)
 {
-	return m_boxWall[i].m_orientation.getRotMat();
+	return m_objects[i].m_orientation.getRotMat();
 }
 
 Mat4 DreiBSystem::getScaleMatOf(int i)
 {
 	Mat4 temp;
-	temp.initScaling(m_boxWall[i].m_boxSize.x, m_boxWall[i].m_boxSize.y, m_boxWall[i].m_boxSize.z);
+	temp.initScaling(m_objects[i].m_boxSize.x, m_objects[i].m_boxSize.y, m_objects[i].m_boxSize.z);
 	return temp;
 }
 
@@ -111,16 +115,16 @@ void DreiBSystem::resetScene()
 {
 	//delete everything
 	m_iNumBoxes = 0;
-	m_boxWall.clear();
+	m_objects.clear();
 
 	//make new scene
 	buildBoxWall(10, 0.1f, 0.05f);
-	addBall(Vec3(0, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 8));
+	addBall(Vec3(0, -0.35f, -0.5f), 0.05f, 300, Vec3(0, 0, 8));
 	addBall(Vec3(0.2f, -0.35f, -0.5f), 0.05f, 3, Vec3(0, 0, 9));
 
 	Spring spring;
-	spring.initialLength = 0.5f;
-	spring.point1 = addBall(Vec3(0, -0.3f, 0.2f), 0.05f, 3, Vec3(0.5f, 0.5f, -2.0f));
-	spring.point2 = addBall(Vec3(0, 0.5, 0), 0.05f, 10, Vec3(.0f));
+	spring.initialLength = 0.7f;
+	spring.point1 = addBall(Vec3(0, 0.3f, 0.2f), 0.05f, 3, Vec3(0.0f, 0.0f, 0.0f), false, true);
+	spring.point2 = addBall(Vec3(0, 0.5, 0), 0.05f, 10, Vec3(.0f), true, true);
 	m_spring = spring;
 }
