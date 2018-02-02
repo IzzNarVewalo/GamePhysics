@@ -102,14 +102,14 @@ void DreiB::externalForcesCalculations(float timeElapsed)
 				tempTotalForce += temp[i].m_pointsTorque[j].fi;
 			}
 
-			//nur wer torque hat und ball ist bekommt gravity
+			/*//nur wer torque hat und ball ist bekommt gravity
 			if (temp[i].isBall || (tempTorqueNum > 0 || collided)) {
 				tempTotalForce = m_fexternalForce;
 			}
 			else {
 				tempTotalForce = Vec3(0.0f);
-			}
-			//tempTotalForce = m_fexternalForce;
+			}*/
+			tempTotalForce = m_fexternalForce;
 
 			//set total Torque
 			m_pDreiBSystem->setTotalTorque(i, tempTotalTorque);
@@ -174,9 +174,14 @@ void DreiB::simulateTimestep(float timeStep)
 
 	//check for collisions
 	for (int i = 0; i < num; i++) {
-		for (int j = 55; j < 59; i != j, j++) {
+		for (int j = 0; j < num; i != j, j++) {
 
 			if (temp[i].m_bfixed)
+				continue;
+
+			float distance = norm(temp[i].m_boxCenter - temp[j].m_boxCenter);
+			float minDistance = norm(temp[i].m_boxSize + temp[j].m_boxSize);
+			if (distance > minDistance)
 				continue;
 
 			GamePhysics::Mat4 AM = m_pDreiBSystem->calcTransformMatrixOf(j);
@@ -218,9 +223,6 @@ void DreiB::simulateTimestep(float timeStep)
 
 				m_pDreiBSystem->setAngularMomentum(j, temp[j].m_angularMomentum + 10 * (cross(temp[j].m_boxCenter, J*simpletest.normalWorld)));
 				m_pDreiBSystem->setAngularMomentum(i, temp[i].m_angularMomentum - 10 * (cross(temp[i].m_boxCenter, J*simpletest.normalWorld)));
-
-				//Set torque -> not working
-				//m_pDreiBSystem->pushBackTorque(i, simpletest.collisionPointWorld, Vec3(2, 4, 0));
 			}
 		}
 	}
